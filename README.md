@@ -36,6 +36,6 @@ npm install
 npm run dev            # local dev
 npm run build          # -> dist/
 npx vite preview --port 4173 &  BROWSER=webkit npm run e2e
-npm run deploy         # build + force-push dist/ to gh-pages branch
+npm run deploy         # build + commit dist/ on top of gh-pages branch (normal push)
 npm run assets         # regenerate WebP assets from source PNGs
 ```
