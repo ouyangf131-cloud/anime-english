@@ -11,6 +11,7 @@ BG = {
   'forge': 'e4e973fb14231d4a5060a8e0fe7bdda27a4c19ef518715f2e26d8a0ccaf210cc.jpg',
   'forest': '04960dee0fcb34f427f051957e8a6afa41c9aa3e707f37de28a2e4e0481b5946.jpg',
   'teahouse': 'b22fd434ac512e089e3711302266ee5da585cb55f344fe3b9600818ea6652a94.jpg',
+  'river': '992cbfbb45163901f0272730024b6ed29930819a68c66564a83152b45f50df68.jpg',  # Task 2 溪边 (generated, original)
 }
 BGDIR = os.environ.get('BGDIR', '/workspace/anime-english/art')
 OUT = os.path.join(os.path.dirname(__file__), '..', 'public', 'assets')

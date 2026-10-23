@@ -28,7 +28,12 @@ tests/e2e.mjs                    Playwright play-through (390x844, WebKit)
 ## Add a task
 1. Copy `src/tasks/task2.json` to `src/tasks/task3.json`, set a new `id`, `order`, `giver` (npc whose map marker offers it), `characters`, `keySentences`, `ending`, and `scenes[].turns[]`.
 2. Each turn: `speaker`, `expression` (happy|surprised|confused), `line`, `zh`, optional `prompt`, 3 `options` ({en, zh}), `answer` (index), `hint`, optional `after` reaction.
-3. Scene `bg` must be one of `public/assets/bg/*.webp` (forge, forest, teahouse, map). Remove the task from `COMING_SOON` in `src/tasks/index.js`.
+3. Scene `bg` must be listed in `SCENE_BGS` (`src/data/characters.js`: forge, forest, teahouse, river) and exist as `public/assets/bg/<bg>.webp`. Optional scene `travelNote` (中文) shows on the transition card. Remove the task from `COMING_SOON` in `src/tasks/index.js`.
+4. Run `npm run audio` to pre-render fallback MP3s for new English lines (the e2e fails if any line lacks a clip).
+
+## Read-aloud
+`src/lib/speech.js`: speechSynthesis first (en-US voice, picked again on `voiceschanged`; unlocked by a silent utterance inside the first tap; `cancel()` then `speak()` synchronously, `resume()` if paused). If there is no English voice, the utterance errors, or `onstart` doesn't fire within 1.5 s, it plays the pre-rendered clip (`public/assets/audio/`, local Piper TTS `en_US-lessac-medium`, `tools/gen_audio.py`) through one shared `<audio>` element unlocked on the first tap. `window.__aeSpeech` exposes an event log for tests.
+`npm run speech-probe` (needs PulseAudio null sink `cap`, espeak-ng + speech-dispatcher, xvfb) drives a headed browser and records the real audio output; `MODE=synth|noapi|broken`.
 
 ## Commands
 ```
@@ -38,4 +43,5 @@ npm run build          # -> dist/
 npx vite preview --port 4173 &  BROWSER=webkit npm run e2e
 npm run deploy         # build + commit dist/ on top of gh-pages branch (normal push)
 npm run assets         # regenerate WebP assets from source PNGs
+npm run audio          # regenerate fallback MP3s (Piper TTS) + src/data/audioManifest.json
 ```

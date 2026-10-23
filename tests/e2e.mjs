@@ -62,6 +62,7 @@ async function checkVisible(label) {
   return true;
 }
 let visChecks = 0;
+const travelCards = [];
 
 async function playTask(taskId, plan /* turnId -> number of wrong picks before correct */, shotTurn) {
   const task = tasks[taskId];
@@ -72,10 +73,29 @@ async function playTask(taskId, plan /* turnId -> number of wrong picks before c
   const N = turnsOf(task).length;
   const full = (i) => Math.floor(100 / N) + (i >= N - (100 - Math.floor(100 / N) * N) ? 1 : 0);
   let ti = -1;
+  const firstOfScene = new Map(task.scenes.map((s, i) => [s.turns[0].id, { s, i }]));
   for (const turn of turnsOf(task)) {
     ti++;
-    // travel screen when scene changes
-    if (await tid('arrive').isVisible().catch(() => false)) await tid('arrive').tap();
+    // transition card (BUG-07: kept) when the scene changes; check place + background
+    const sc = firstOfScene.get(turn.id);
+    if (sc && sc.i === 0) {
+      await page.locator('[data-testid=travel], [data-testid=dialog]').first().waitFor({ timeout: 5000 });
+      if (await tid('travel').isVisible()) await tid('arrive').tap();
+    }
+    if (sc && sc.i > 0) {
+      await tid('travel').waitFor({ timeout: 5000 });
+      const card = await tid('travel').innerText();
+      if (!card.includes(sc.s.place) || (sc.s.travelNote && !card.includes(sc.s.travelNote))) throw new Error(`ASSERT: ${taskId} travel card for ${sc.s.id} wrong: ${card}`);
+      travelCards.push(`${taskId}:${sc.s.id}`);
+      if (taskId === 'task2' && shotTurn) await shot(`${tag}-05${sc.s.id === 'forge' ? 'b' : 'd'}-task2-card-${sc.s.id}`);
+      await tid('arrive').tap();
+      if (taskId === 'task2' && shotTurn) { await tid('dialog').waitFor(); await shot(`${tag}-05${sc.s.id === 'forge' ? 'c' : 'e'}-task2-${sc.s.id}`); }
+    }
+    if (sc) {
+      await tid('dialog').waitFor();
+      const bgUrl = await page.locator('.scene').first().evaluate((e) => e.style.backgroundImage);
+      if (!bgUrl.includes(`/assets/bg/${sc.s.bg}.webp`)) throw new Error(`ASSERT: ${taskId} scene ${sc.s.id} background ${bgUrl}, expected ${sc.s.bg}`);
+    }
     await tid('dialog').waitFor();
     await page.getByText(turn.line, { exact: true }).waitFor({ timeout: 5000 });
     const correct = turn.options[turn.answer].en;
@@ -130,7 +150,37 @@ try {
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: 'networkidle' });
   await shot(`${tag}-01-start`);
+  // ---- scene/location data (BUG-08): task 2 must use several village locations, all with backgrounds
+  const SCENE_BGS = JSON.parse(fs.readFileSync(new URL('../src/data/characters.js', import.meta.url), 'utf8').match(/SCENE_BGS = (\[[^\]]*\])/)[1].replace(/'/g, '"'));
+  for (const t of Object.values(tasks)) {
+    for (const sc of t.scenes) assert(SCENE_BGS.includes(sc.bg), `${t.id} scene ${sc.id} uses allowed background '${sc.bg}'`);
+    assert(turnsOf(t).length === 14, `${t.id} has 14 turns`);
+  }
+  const t2bgs = tasks.task2.scenes.map((s) => s.bg);
+  assert(new Set(t2bgs).size === tasks.task2.scenes.length && tasks.task2.scenes.length === 3, `task2 has 3 segments in 3 different locations: ${t2bgs.join(' -> ')}`);
+  const bgStatus = await page.evaluate(async (bgs) => Promise.all(bgs.map(async (b) => (await fetch(`assets/bg/${b}.webp`)).status)), SCENE_BGS);
+  assert(bgStatus.every((x) => x === 200), `all scene backgrounds load (${SCENE_BGS.join(', ')}): ${bgStatus.join(',')}`);
+  // ---- read-aloud fallback clips: every spoken English line has an MP3 and it loads
+  const manifest = JSON.parse(fs.readFileSync(new URL('../src/data/audioManifest.json', import.meta.url)));
+  const need = [];
+  for (const t of Object.values(tasks)) {
+    t.keySentences.forEach((k) => need.push(k.en)); need.push(t.ending.line);
+    for (const u of turnsOf(t)) { need.push(u.line); if (u.after) need.push(u.after.line); u.options.forEach((o) => need.push(o.en)); }
+  }
+  const missing = need.filter((x) => !manifest[x]);
+  assert(missing.length === 0, `every task line/option has a fallback clip (${need.length} refs, missing: ${missing.join(' | ')})`);
+  const clipStatus = await page.evaluate(async (files) => {
+    const bad = [];
+    for (const f of files) { const r = await fetch(`assets/audio/${f}`); if (r.status !== 200 || !(r.headers.get('content-type') || '').includes('audio')) bad.push(f + ':' + r.status); }
+    return bad;
+  }, [...new Set(Object.values(manifest)), 'silent.mp3']);
+  assert(clipStatus.length === 0, `all ${Object.keys(manifest).length} fallback clips served as audio (bad: ${clipStatus.join(',')})`);
   await enterMap();
+  const sp = await page.evaluate(() => ({ log: window.__aeSpeech.log.slice(), hasUA: !!navigator.userActivation }));
+  const un = sp.log.find((e) => e.type === 'unlock-synth' || e.type === 'unlock-audio');
+  assert(un && (!sp.hasUA || un.gesture), `speech unlocked on first tap${sp.hasUA ? ' inside the user gesture' : ''} (${sp.log.filter((e) => e.type.startsWith('unlock')).map((e) => e.type).join(',')})`);
+  const first = sp.log.find((e) => e.type === 'synth-speak' || e.type === 'audio-play');
+  assert(first && first.text === "Let's go and see!" && (!sp.hasUA || first.gesture), `first line spoken synchronously in the tap (${first?.type})`);
   await shot(`${tag}-02-map`);
 
   // ===== BUG-01 regression: taps on DOM sheets must not fall through to Phaser map items
@@ -269,6 +319,14 @@ try {
   // Layout sanity: no horizontal overflow, tap targets >= 44px on map bar
   const ok = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   assert(ok, 'no horizontal overflow');
+  log('transition cards seen:', travelCards.join(', '));
+  assert(travelCards.includes('task2:forge') && travelCards.includes('task2:river'), 'task2 transition cards to forge and river shown');
+  const sp2 = await page.evaluate(() => ({ log: window.__aeSpeech.log.slice(), st: window.__aeSpeech.state() }));
+  const noClip = sp2.log.filter((e) => e.type === 'no-clip');
+  assert(noClip.length === 0, `no spoken line lacked a fallback clip (engine ${sp2.st.engine}, voice ${sp2.st.voice?.name || 'none'})`);
+  const played = sp2.log.filter((e) => ['synth-start', 'audio-start'].includes(e.type));
+  log('speech events (last page load):', Object.entries(sp2.log.reduce((a, e) => ((a[e.type] = (a[e.type] || 0) + 1), a), {})).map((x) => x.join('=')).join(' '));
+  assert(played.length > 0, `read-aloud actually started (${played.length} synth-start/audio-start events)`);
   assert(errors.length === 0, 'no page errors: ' + errors.join(' | '));
   console.log('\nALL PASSED', { s1, s2a, s2b });
 } catch (e) {

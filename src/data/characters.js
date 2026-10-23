@@ -26,4 +26,6 @@ export const ORDER = ['kai', 'mira', 'hana', 'tomo'];
 
 const base = import.meta.env.BASE_URL;
 export const charImg = (id, variant = 'happy') => `${base}assets/chars/${id}_${variant}.webp`;
+// Scene backgrounds a task JSON may reference in scenes[].bg (checked by e2e).
+export const SCENE_BGS = ['forge', 'forest', 'teahouse', 'river'];
 export const bgImg = (id) => `${base}assets/bg/${id}.webp`;

@@ -1,14 +1,16 @@
 {
   "name": "anime-english",
   "version": "1.0.0",
-  "description": "山林小村 · 英语冒险 (personal anime-style English learning H5)",
+  "description": "\u5c71\u6797\u5c0f\u6751 \u00b7 \u82f1\u8bed\u5192\u9669 (personal anime-style English learning H5)",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "assets": "python3 tools/process_assets.py",
     "e2e": "node tests/e2e.mjs",
-    "deploy": "bash tools/deploy.sh"
+    "deploy": "bash tools/deploy.sh",
+    "audio": "python3 tools/gen_audio.py",
+    "speech-probe": "xvfb-run -a node tests/speech_probe.mjs"
   },
   "type": "module",
   "dependencies": {

@@ -134,6 +134,7 @@ export default function TaskPlayer({ task, onQuit, onFinish }) {
           <div className="travel-card panel">
             <div className="travel-place">📍 {scene.place}</div>
             <div className="travel-en">{scene.placeEn}</div>
+            {scene.travelNote && <div className="travel-note" data-testid="travel-note">{scene.travelNote}</div>}
             <div className="travel-walk"><img src={charImg('kai', 'chibi')} alt="Kai" /><img src={charImg(scene.npc, 'chibi')} alt="" className="flip" /></div>
             <button className="btn btn-primary btn-big" onClick={() => setPhase('turn')} data-testid="arrive">到了，打招呼 ▶</button>
           </div>

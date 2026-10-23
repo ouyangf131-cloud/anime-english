@@ -5,8 +5,8 @@ import { charImg, bgImg, ORDER } from '../data/characters.js';
 export default function StartScreen({ onEnter }) {
   const enter = () => {
     unlock(); // iOS Safari: speech must be started from a tap
+    onEnter(); // navigation calls stop(), so speak after it (still inside this tap)
     speak("Let's go and see!");
-    onEnter();
   };
   return (
     <div className="start" style={{ backgroundImage: `url(${bgImg('forest')})` }}>
