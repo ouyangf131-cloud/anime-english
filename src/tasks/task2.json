@@ -79,8 +79,8 @@
           "id": "t2-02",
           "speaker": "hana",
           "expression": "happy",
-          "line": "Take your time. Are you hungry this morning?",
-          "zh": "慢慢来。今天早上饿了吗？",
+          "line": "Good morning! Are you hungry?",
+          "zh": "早上好！饿了吗？",
           "options": [
             {
               "en": "Yes, I'm very hungry!",
@@ -96,7 +96,7 @@
             }
           ],
           "answer": 0,
-          "hint": "hungry = 饿。她问你饿不饿，回答 Yes, I'm hungry."
+          "hint": "hungry = 饿。她问你饿不饿，饿了就说 Yes, I'm very hungry!"
         },
         {
           "id": "t2-03",
@@ -172,9 +172,32 @@
         {
           "id": "t2-06",
           "speaker": "hana",
+          "expression": "confused",
+          "line": "Oh no, your rice balls are cold. I'm sorry!",
+          "zh": "哎呀，你的饭团凉了，对不起！",
+          "options": [
+            {
+              "en": "That's OK. They're good!",
+              "zh": "没关系，很好吃！"
+            },
+            {
+              "en": "How much is it?",
+              "zh": "多少钱？"
+            },
+            {
+              "en": "Nice to meet you.",
+              "zh": "很高兴认识你。"
+            }
+          ],
+          "answer": 0,
+          "hint": "别人道歉（I'm sorry）时，可以说 That's OK（没关系）。"
+        },
+        {
+          "id": "t2-07",
+          "speaker": "hana",
           "expression": "happy",
-          "line": "Is everything OK?",
-          "zh": "一切都还好吗？",
+          "line": "Is everything OK now?",
+          "zh": "现在一切都还好吗？",
           "prompt": "很好吃！吃完你想问一共多少钱：",
           "options": [
             {
@@ -194,7 +217,7 @@
           "hint": "问价格用 How much is it? How old 是问年龄。"
         },
         {
-          "id": "t2-07",
+          "id": "t2-08",
           "speaker": "hana",
           "expression": "happy",
           "line": "The tea is two coins, and the rice balls are four coins. So that's six coins, please.",
@@ -222,29 +245,6 @@
             "line": "Six coins... one, two, three, four, five, six. Yes! Thank you, Kai.",
             "zh": "六个铜币……一、二、三、四、五、六。对了！谢谢你，Kai。"
           }
-        },
-        {
-          "id": "t2-08",
-          "speaker": "hana",
-          "expression": "confused",
-          "line": "Oh no, your rice balls are cold. I'm sorry!",
-          "zh": "哎呀，你的饭团凉了，对不起！",
-          "options": [
-            {
-              "en": "That's OK. They're good!",
-              "zh": "没关系，很好吃！"
-            },
-            {
-              "en": "How much is it?",
-              "zh": "多少钱？"
-            },
-            {
-              "en": "Nice to meet you.",
-              "zh": "很高兴认识你。"
-            }
-          ],
-          "answer": 0,
-          "hint": "别人道歉（I'm sorry）时，可以说 That's OK（没关系）。"
         }
       ]
     },

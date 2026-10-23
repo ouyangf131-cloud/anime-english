@@ -21,13 +21,20 @@ export function turnPoints(index, total) {
   return base + (index >= total - rem ? 1 : 0);
 }
 
-// first try = full points, second try = half (rounded up), later = 0
+// first try = full points, second try = exactly half (may be x.5), later = 0
 export function pointsEarned(index, total, tries) {
   const full = turnPoints(index, total);
-  return tries <= 1 ? full : tries === 2 ? Math.ceil(full / 2) : 0;
+  return tries <= 1 ? full : tries === 2 ? full / 2 : 0;
+}
+
+// Scores are multiples of 0.5 (exact in floating point): show "96.5" or "97"
+export function fmtPts(n) {
+  if (n == null) return '';
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
 // results[i] = { tries } for turn i; the score is exactly the sum of the points shown per turn
+// (all first try = 100, all second try = 50; no rounding anywhere)
 export function scoreOf(results, total) {
   return results.reduce((a, r, i) => a + pointsEarned(i, total, r.tries), 0);
 }

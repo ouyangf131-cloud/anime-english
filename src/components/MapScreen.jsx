@@ -6,6 +6,7 @@ import { CHARACTERS, charImg } from '../data/characters.js';
 import { TASKS, COMING_SOON } from '../tasks/index.js';
 import { load, setKaiPos } from '../lib/store.js';
 import { speak } from '../lib/speech.js';
+import { fmtPts } from '../lib/util.js';
 import { SpeakPair } from './SpeakButtons.jsx';
 
 function markersFor(data) {
@@ -69,7 +70,7 @@ export default function MapScreen({ onStartTask, onNotebook, onCharacters }) {
         <img className="task-row-av" src={charImg(t.giver, 'chibi')} alt="" />
         <div className="task-row-main">
           <div className="task-row-title">任务 {t.order} · {t.title}</div>
-          <div className="task-row-sub">{p?.plays ? `最高 ${p.best} 分 · 上次 ${p.last.score} 分 · 玩过 ${p.plays} 次` : '还没挑战过'}</div>
+          <div className="task-row-sub">{p?.plays ? `最高 ${fmtPts(p.best)} 分 · 上次 ${fmtPts(p.last.score)} 分 · 玩过 ${p.plays} 次` : '还没挑战过'}</div>
         </div>
         <button className="btn btn-primary" onClick={() => onStartTask(t.id)} data-testid={`start-${t.id}`}>{p?.plays ? '再玩' : '开始'}</button>
       </div>
@@ -81,7 +82,7 @@ export default function MapScreen({ onStartTask, onNotebook, onCharacters }) {
       <div className="map-host" ref={hostRef} />
       <header className="map-top">
         <div className="map-title">山林小村</div>
-        <div className="map-stats">完成 {doneCount}/{TASKS.length} · 总分 {totalBest}</div>
+        <div className="map-stats">完成 {doneCount}/{TASKS.length} · 总分 {fmtPts(totalBest)}</div>
       </header>
       <div className="map-tip">点地面走动 · 点人物接任务 · 点 ✨ 学单词</div>
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { findTurn, TASK_BY_ID } from '../tasks/index.js';
 import { CHARACTERS, charImg, bgImg } from '../data/characters.js';
 import { shuffle } from '../lib/util.js';
@@ -15,6 +15,12 @@ export default function ReviewScreen({ items, from, onMap, onBack }) {
   const [done, setDone] = useState(false);
   const [mastered, setMastered] = useState(0);
   const cur = list[i];
+  const scrollRef = useRef(null);
+  useLayoutEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [i]);
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (el && (done || wrong.length)) el.scrollTop = el.scrollHeight;
+  }, [done, wrong.length]);
   const opts = useMemo(() => (cur ? shuffle(cur.turn.options.map((o, k) => ({ ...o, k }))) : []), [cur]);
 
   useEffect(() => { if (cur) speak(cur.turn.line); }, [i]); // eslint-disable-line
@@ -61,6 +67,7 @@ export default function ReviewScreen({ items, from, onMap, onBack }) {
       <div className="stage small">
         <img className="portrait pop" key={i + String(done) + wrong.length} src={charImg(t.speaker, done ? 'happy' : wrong.length ? 'confused' : t.expression)} alt="" />
       </div>
+      <div className="turn-scroll" ref={scrollRef}>
       <div className="dialog panel" data-testid="review">
         <div className="name-tag" style={{ background: CHARACTERS[t.speaker].color }}>{CHARACTERS[t.speaker].name}</div>
         <Sentence key={i} en={t.line} zh={t.zh} />
@@ -90,6 +97,7 @@ export default function ReviewScreen({ items, from, onMap, onBack }) {
             <button className="btn btn-primary btn-big" onClick={next} data-testid="review-next">{i + 1 < list.length ? '下一题 ▶' : '完成复习'}</button>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

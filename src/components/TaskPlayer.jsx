@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CHARACTERS, charImg, bgImg } from '../data/characters.js';
 import { allTurns } from '../tasks/index.js';
 import { speak, stop } from '../lib/speech.js';
-import { shuffle, scoreOf, pointsEarned, turnPoints } from '../lib/util.js';
+import { shuffle, scoreOf, pointsEarned, turnPoints, fmtPts } from '../lib/util.js';
 import { recordAttempt } from '../lib/store.js';
 import Sentence from './Sentence.jsx';
 import { SpeakPair } from './SpeakButtons.jsx';
@@ -15,6 +15,7 @@ export default function TaskPlayer({ task, onQuit, onFinish }) {
   const [wrongPicks, setWrongPicks] = useState([]);
   const [status, setStatus] = useState('ask'); // ask | wrong | correct
   const results = useRef([]);
+  const scrollRef = useRef(null);
   const startAt = useRef(0);
   const finishedAt = useRef(0);
 
@@ -33,6 +34,14 @@ export default function TaskPlayer({ task, onQuit, onFinish }) {
   }, [phase, idx]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => stop(), []);
+
+  // New turn: start at the top of the dialogue. After a wrong / right answer the hint grows,
+  // so scroll the bottom area to the end to keep every option (or 继续) on screen.
+  useLayoutEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [idx, phase]);
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (el && status !== 'ask') el.scrollTop = el.scrollHeight;
+  }, [status, tries]);
 
   const begin = () => {
     startAt.current = Date.now();
@@ -143,12 +152,12 @@ export default function TaskPlayer({ task, onQuit, onFinish }) {
           <img className="portrait" src={charImg(e.speaker, e.expression)} alt={e.speaker} />
           <img className="portrait-kai" src={charImg('kai', 'happy')} alt="Kai" />
         </div>
-        <div className="dialog panel">
+        <div className="turn-scroll"><div className="dialog panel">
           <div className="name-tag" style={{ background: CHARACTERS[e.speaker].color }}>{CHARACTERS[e.speaker].name}</div>
           <Sentence en={e.line} zh={e.zh} big />
           <p className="narration">{e.narration}</p>
           <button className="btn btn-primary btn-big" onClick={finish} data-testid="to-result">任务完成！查看结算</button>
-        </div>
+        </div></div>
       </div>
     );
   }
@@ -170,6 +179,7 @@ export default function TaskPlayer({ task, onQuit, onFinish }) {
       <div className="stage">
         <img key={spk + npcExpr} className={`portrait pop ${status === 'wrong' ? 'shake' : ''}`} src={charImg(spk, npcExpr)} alt={`${spk} ${npcExpr}`} data-testid="npc-portrait" />
       </div>
+      <div className="turn-scroll" ref={scrollRef} data-testid="turn-scroll">
       <div className="dialog panel" data-testid="dialog">
         <div className="name-tag" style={{ background: ch.color }}>{ch.name}</div>
         {showAfter
@@ -182,9 +192,9 @@ export default function TaskPlayer({ task, onQuit, onFinish }) {
           <img className={`kai-face ${status}`} src={charImg('kai', kaiExpr)} alt={`Kai ${kaiExpr}`} data-testid="kai-face" />
           <div className="kai-say">
             {status === 'wrong' ? (
-              <div className="hint" data-testid="hint">💡 {turn.hint}<div className="hint-sub">{tries === 1 ? `再选一次吧（第二次答对得 ${Math.ceil(turnPoints(idx, turns.length) / 2)} 分）` : '再选一次吧（这题不再得分，但要弄懂哦）'}</div></div>
+              <div className="hint" data-testid="hint">💡 {turn.hint}<div className="hint-sub">{tries === 1 ? `再选一次吧（第二次答对得一半：${fmtPts(turnPoints(idx, turns.length) / 2)} 分）` : '再选一次吧（这题不再得分，但要弄懂哦）'}</div></div>
             ) : status === 'correct' ? (
-              <div className="good" data-testid="good">{tries === 1 ? '✨ 答对了！' : tries === 2 ? '👍 对了！（第二次，得一半分）' : '👌 这次对了'} <span className="pts" data-testid="pts">+{pointsEarned(idx, turns.length, tries)}</span></div>
+              <div className="good" data-testid="good">{tries === 1 ? '✨ 答对了！' : tries === 2 ? '👍 对了！（第二次，得一半分）' : '👌 这次对了'} <span className="pts" data-testid="pts">+{fmtPts(pointsEarned(idx, turns.length, tries))}</span></div>
             ) : (
               <div className="prompt">{turn.prompt || 'Kai 该怎么回答？'}<span className="prompt-pts">本题 {turnPoints(idx, turns.length)} 分</span></div>
             )}
@@ -207,6 +217,7 @@ export default function TaskPlayer({ task, onQuit, onFinish }) {
             <button className="btn btn-primary btn-big" onClick={next} data-testid="next">继续 ▶</button>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

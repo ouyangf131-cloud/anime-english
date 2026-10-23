@@ -40,6 +40,29 @@ async function enterMap() {
   await page.waitForTimeout(500);
 }
 
+// Every option must be fully on screen and actually hit-testable (not covered / clipped),
+// and the hint box must be fully visible too.
+async function checkVisible(label) {
+  const r = await page.evaluate(() => {
+    const vh = window.innerHeight, vw = window.innerWidth;
+    const full = (el) => {
+      const q = el.getBoundingClientRect();
+      const inView = q.top >= -0.5 && q.bottom <= vh + 0.5 && q.left >= -0.5 && q.right <= vw + 0.5;
+      const pts = [[q.left + 6, q.top + 4], [q.right - 6, q.bottom - 4], [q.left + q.width / 2, q.top + q.height / 2]];
+      const hit = pts.every(([x, y]) => { const e = document.elementFromPoint(x, y); return e && (el === e || el.contains(e)); });
+      return { top: Math.round(q.top), bottom: Math.round(q.bottom), inView, hit };
+    };
+    const opts = [...document.querySelectorAll('[data-testid=option]')].map((b) => ({ t: b.innerText, ...full(b) }));
+    const hint = document.querySelector('[data-testid=hint]');
+    return { vh, opts, hint: hint ? full(hint) : null };
+  });
+  const bad = r.opts.filter((o) => !o.inView || !o.hit);
+  if (bad.length) throw new Error(`ASSERT: ${label}: option(s) not fully visible/tappable (vh ${r.vh}): ${JSON.stringify(bad)}`);
+  if (r.hint && !(r.hint.inView && r.hint.hit)) throw new Error(`ASSERT: ${label}: hint not fully visible: ${JSON.stringify(r.hint)}`);
+  return true;
+}
+let visChecks = 0;
+
 async function playTask(taskId, plan /* turnId -> number of wrong picks before correct */, shotTurn) {
   const task = tasks[taskId];
   await tid('intro').waitFor();
@@ -66,16 +89,25 @@ async function playTask(taskId, plan /* turnId -> number of wrong picks before c
       const npcAlt = await tid('npc-portrait').getAttribute('alt');
       assert(npcAlt.endsWith('confused'), `${turn.id}: wrong pick #${k + 1} NPC expression is confused (${npcAlt})`);
       assert(await page.getByRole('button', { name: wrongs[k], exact: true }).isDisabled(), `${turn.id}: wrong option disabled for retry`);
+      await page.waitForTimeout(80);
+      await checkVisible(`${taskId} ${turn.id} after ${k + 1} wrong`); visChecks++;
+      if (VP[1] < 600 && tag === 'webkit' && k === 1 && (turn.id === 't1-14' || turn.id === 't1-12')) {
+        await page.waitForTimeout(400);
+        await page.screenshot({ path: `${SHOTS}short-${VP.join('x')}-${turn.id}-wrong2.jpg`, type: 'jpeg', quality: 82 });
+      }
       if (shotTurn === turn.id && k === 0) await shot(`${tag}-04-dialogue-wrong-hint`);
     }
     if (shotTurn === turn.id && nWrong === 0) await shot(`${tag}-04-dialogue-turn`);
+    if (nWrong === 0) { await checkVisible(`${taskId} ${turn.id} initial`); visChecks++; }
     await page.getByRole('button', { name: correct, exact: true }).tap();
     await tid('good').waitFor();
     const kaiAlt = await tid('kai-face').getAttribute('alt');
     if (nWrong === 0 && turn.id === turnsOf(task)[0].id) assert(kaiAlt.includes('happy'), `${turn.id}: correct -> Kai happy`);
     if (shotTurn === turn.id) await shot(`${tag}-05-dialogue-correct`);
-    const pts = parseInt((await tid('pts').innerText()).replace('+', ''), 10);
-    const exp = nWrong === 0 ? full(ti) : nWrong === 1 ? Math.ceil(full(ti) / 2) : 0;
+    const pts = parseFloat((await tid('pts').innerText()).replace('+', ''));
+    const exp = nWrong === 0 ? full(ti) : nWrong === 1 ? full(ti) / 2 : 0;
+    const nb = await tid('next').boundingBox();
+    if (!nb || nb.y < 0 || nb.y + nb.height > VP[1] + 0.5) throw new Error(`ASSERT: ${turn.id} 继续 button off-screen ${JSON.stringify(nb)}`);
     if (pts !== exp) throw new Error(`ASSERT: ${turn.id} shows +${pts}, expected +${exp}`);
     shownSum += pts; expectedScore += exp;
     await tid('next').tap();
@@ -86,7 +118,7 @@ async function playTask(taskId, plan /* turnId -> number of wrong picks before c
   await tid('result').waitFor();
   let maxSum = 0; for (let i = 0; i < N; i++) maxSum += full(i);
   assert(maxSum === 100, `${taskId} per-turn full points sum to exactly 100`);
-  const score = parseInt(await tid('score').innerText(), 10);
+  const score = parseFloat(await tid('score').innerText());
   assert(score === expectedScore && score === shownSum, `${taskId} score ${score} == expected ${expectedScore} == sum of shown points ${shownSum}`);
   const nWrongItems = await tid('wrong-item').count();
   assert(nWrongItems === Object.keys(plan).length, `${taskId} result lists ${nWrongItems} wrong items`);
@@ -158,7 +190,7 @@ try {
   // ===== Task 2 via task list, one wrong; skip review
   await tid('open-tasks').tap();
   await tid('start-task2').tap();
-  const s2a = await playTask('task2', { 't2-07': 1 }, 't2-07');
+  const s2a = await playTask('task2', { 't2-08': 1 }, 't2-08');
   await tid('back-map').tap();
   await page.waitForFunction(() => window.__aeMap && window.__aeMap.ready());
 
@@ -183,16 +215,16 @@ try {
   await tid('open-notebook').tap();
   await tid('redo-all').tap();
   await tid('review').waitFor();
-  const t27 = turnsOf(tasks.task2).find((t) => t.id === 't2-07');
+  const t28 = turnsOf(tasks.task2).find((t) => t.id === 't2-08');
   // wrong once in review first (stays), check hint, then correct
-  await page.getByRole('button', { name: t27.options[1].en, exact: true }).tap();
-  await page.getByRole('button', { name: t27.options[0].en, exact: true }).tap();
+  await page.getByRole('button', { name: t28.options[1].en, exact: true }).tap();
+  await page.getByRole('button', { name: t28.options[0].en, exact: true }).tap();
   await tid('review-next').tap();
   await tid('review-done').waitFor();
   assert((await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('anime-english.v1')).wrong).length)) === 1, 'review with a miss keeps item in notebook');
   await page.getByText('返回错题本').tap();
   await tid('redo-all').tap();
-  await page.getByRole('button', { name: t27.options[0].en, exact: true }).tap();
+  await page.getByRole('button', { name: t28.options[0].en, exact: true }).tap();
   await tid('review-next').tap();
   await tid('review-done').waitFor();
   assert((await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('anime-english.v1')).wrong).length)) === 0, 'first-try correct removes item from notebook');
@@ -218,6 +250,21 @@ try {
   await page.getByText('村民').tap();
   await page.waitForTimeout(600);
   await shot(`${tag}-12-characters`);
+
+  // ===== Stress: every turn wrong twice (both tasks) -> visibility after 1 and 2 misses on every turn; score 0
+  //        every turn wrong once (task 1) -> exactly 50
+  await page.getByLabel('返回地图').tap();
+  await page.waitForFunction(() => window.__aeMap && window.__aeMap.ready());
+  const allWrong = (t, n) => Object.fromEntries(turnsOf(tasks[t]).map((x) => [x.id, n]));
+  for (const [t, n, exp] of [['task1', 2, 0], ['task2', 2, 0], ['task1', 1, 50]]) {
+    await tid('open-tasks').tap();
+    await tid(`start-${t}`).tap();
+    const sc = await playTask(t, allWrong(t, n), null);
+    assert(sc === exp, `${t} with every turn wrong ${n}x scores exactly ${exp}`);
+    await tid('back-map').tap();
+    await page.waitForFunction(() => window.__aeMap && window.__aeMap.ready());
+  }
+  log(`visibility checks passed: ${visChecks}`);
 
   // Layout sanity: no horizontal overflow, tap targets >= 44px on map bar
   const ok = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);

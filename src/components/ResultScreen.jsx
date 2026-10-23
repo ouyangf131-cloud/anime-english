@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { findTurn, TASK_BY_ID } from '../tasks/index.js';
 import { CHARACTERS, charImg, bgImg } from '../data/characters.js';
-import { fmtTime } from '../lib/util.js';
+import { fmtTime, fmtPts } from '../lib/util.js';
 import { speak } from '../lib/speech.js';
 import { SpeakPair } from './SpeakButtons.jsx';
 
@@ -45,18 +45,18 @@ export default function ResultScreen({ result, onReview, onMap, onRetry }) {
           <div className="result-hero">
             <img src={charImg('kai', r.score >= 70 ? 'happy' : 'confused')} alt="Kai" />
             <div>
-              <div className="score" data-testid="score">{r.score}<small> 分</small></div>
+              <div className="score" data-testid="score">{fmtPts(r.score)}<small> 分</small></div>
               <div className="stars">{'★'.repeat(stars)}{'☆'.repeat(3 - stars)}</div>
             </div>
           </div>
           <div className="result-grid">
             <div><b>{r.firstTry}/{r.total}</b><span>首次答对</span></div>
             <div><b data-testid="time-used">{fmtTime(r.timeMs)}</b><span>用时</span></div>
-            <div><b>{r.best}</b><span>最高分</span></div>
+            <div><b>{fmtPts(r.best)}</b><span>最高分</span></div>
           </div>
           <div className="compare" data-testid="compare">
             {r.prev
-              ? <>和上次比：<b className={diff >= 0 ? 'up' : 'down'}>{diff > 0 ? `+${diff}` : diff} 分</b>（上次 {r.prev.score} 分），用时{tdiff <= 0 ? `快了 ${-tdiff} 秒` : `慢了 ${tdiff} 秒`}</>
+              ? <>和上次比：<b className={diff >= 0 ? 'up' : 'down'}>{diff > 0 ? `+${fmtPts(diff)}` : fmtPts(diff)} 分</b>（上次 {fmtPts(r.prev.score)} 分），用时{tdiff <= 0 ? `快了 ${-tdiff} 秒` : `慢了 ${tdiff} 秒`}</>
               : <>第一次挑战这个任务，记录已保存 📒</>}
           </div>
         </div>
