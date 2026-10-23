@@ -20,6 +20,7 @@ const ctx = await browser.newContext({
   ...devices['iPhone 13'],
   ...(engine === chromium ? { defaultBrowserType: undefined } : {}),
   viewport: { width: 390, height: 844 },
+  deviceScaleFactor: 2,
   locale: 'zh-CN',
 });
 const page = await ctx.newPage();
@@ -28,7 +29,7 @@ page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 page.on('dialog', (d) => d.accept());
 
-const shot = async (n) => { await page.waitForTimeout(450); await page.screenshot({ path: `${SHOTS}${n}.png` }); };
+const shot = async (n) => { await page.waitForTimeout(450); await page.screenshot({ path: `${SHOTS}${n}.jpg`, type: 'jpeg', quality: 82 }); };
 const tid = (id) => page.getByTestId(id);
 
 async function enterMap() {

@@ -11,6 +11,6 @@ cd "$TMP"
 git init -q -b gh-pages
 git add -A
 git -c user.name="ouyangf131-cloud" -c user.email="343032344+ouyangf131-cloud@users.noreply.github.com" commit -qm "Deploy $(date -u +%Y-%m-%dT%H:%MZ)"
-git push -f "$REMOTE" gh-pages
+git -c credential.helper= -c credential.helper='!gh auth git-credential' push -f "$REMOTE" gh-pages
 rm -rf "$TMP"
 echo "Deployed."
