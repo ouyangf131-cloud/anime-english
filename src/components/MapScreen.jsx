@@ -6,6 +6,8 @@ import { CHARACTERS, charImg } from '../data/characters.js';
 import { TASKS, COMING_SOON } from '../tasks/index.js';
 import { load, setKaiPos } from '../lib/store.js';
 import { speak } from '../lib/speech.js';
+import { idlePreloadBgs } from '../lib/preload.js';
+import { SCENE_BGS } from '../data/characters.js';
 import { fmtPts } from '../lib/util.js';
 import { SpeakPair } from './SpeakButtons.jsx';
 
@@ -54,7 +56,16 @@ export default function MapScreen({ onStartTask, onNotebook, onCharacters }) {
       itemScreen: (x, y) => scene.screenPos(x, y),
       ready: () => !!scene.kai,
     };
-    return () => { delete window.__aeMap; game.destroy(true); };
+    // N-08: only after the village map is interactive, warm scene backgrounds
+    // one-by-one so they never compete with map.webp / chibis on first entry.
+    let cancelled = false;
+    const waitReady = () => {
+      if (cancelled) return;
+      if (scene.kai) { idlePreloadBgs(SCENE_BGS); return; }
+      requestAnimationFrame(waitReady);
+    };
+    waitReady();
+    return () => { cancelled = true; delete window.__aeMap; game.destroy(true); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // While a task list / NPC sheet is open the map underneath must not react to taps
