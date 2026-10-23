@@ -56,6 +56,9 @@ export default function MapScreen({ onStartTask, onNotebook, onCharacters }) {
     return () => { delete window.__aeMap; game.destroy(true); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // While a task list / NPC sheet is open the map underneath must not react to taps
+  useEffect(() => { sceneRef.current?.setLocked(sheet || !!npc); }, [sheet, npc]);
+
   const totalBest = TASKS.reduce((a, t) => a + (data.tasks[t.id]?.best || 0), 0);
   const doneCount = TASKS.filter((t) => data.tasks[t.id]?.plays > 0).length;
 

@@ -45,7 +45,10 @@ img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
   transition: transform .08s;
 }
 .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(60, 40, 10, .35); }
-.btn:disabled { opacity: .45; }
+.btn:disabled, .btn-primary:disabled {
+  opacity: 1; background: #ddd5c0; color: #4a4232; border: 2px dashed #8f8166;
+  box-shadow: none; cursor: not-allowed; transform: none;
+}
 .btn-primary { background: linear-gradient(#5c8a47, #3f6b3a); color: #fff; border-color: #2f4a34; }
 .btn-big { min-height: 52px; font-size: 17px; width: 100%; }
 .btn-small { min-height: 44px; padding: 6px 12px; font-size: 14px; }
@@ -191,6 +194,7 @@ img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
 .kai-face.correct { border-color: #8cc56a; }
 .kai-say { flex: 1; min-width: 0; }
 .prompt { color: #fff8e6; font-weight: 600; text-shadow: 0 1px 4px #000; font-size: 15px; }
+.prompt-pts { float: right; font-size: 12px; font-weight: 600; background: rgba(0,0,0,.35); padding: 1px 8px; border-radius: 99px; }
 .hint { background: #fff4d6; border: 2px solid var(--gold); border-radius: 12px; padding: 6px 10px; font-size: 14px; }
 .hint-sub { font-size: 12px; color: #7a6230; margin-top: 2px; }
 .good { background: #eaf6dd; border: 2px solid #8cc56a; border-radius: 12px; padding: 8px 10px; font-weight: 700; }

@@ -14,12 +14,14 @@ const turnsOf = (t) => t.scenes.flatMap((s) => s.turns);
 const log = (...a) => console.log('•', ...a);
 const assert = (c, m) => { if (!c) throw new Error('ASSERT: ' + m); log('ok -', m); };
 const tag = process.env.BROWSER || 'webkit';
+const VP = (process.env.VP || '390x844').split('x').map(Number);
+const SAVE_SHOTS = process.env.VP == null || process.env.VP === '390x844';
 
 const browser = await engine.launch();
 const ctx = await browser.newContext({
   ...devices['iPhone 13'],
   ...(engine === chromium ? { defaultBrowserType: undefined } : {}),
-  viewport: { width: 390, height: 844 },
+  viewport: { width: VP[0], height: VP[1] },
   deviceScaleFactor: 2,
   locale: 'zh-CN',
 });
@@ -29,7 +31,7 @@ page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 page.on('dialog', (d) => d.accept());
 
-const shot = async (n) => { await page.waitForTimeout(450); await page.screenshot({ path: `${SHOTS}${n}.jpg`, type: 'jpeg', quality: 82 }); };
+const shot = async (n) => { if (!SAVE_SHOTS && !n.endsWith('FAIL')) return; await page.waitForTimeout(450); await page.screenshot({ path: `${SHOTS}${n}.jpg`, type: 'jpeg', quality: 82 }); };
 const tid = (id) => page.getByTestId(id);
 
 async function enterMap() {
@@ -43,8 +45,12 @@ async function playTask(taskId, plan /* turnId -> number of wrong picks before c
   await tid('intro').waitFor();
   if (shotTurn) await shot(`${tag}-03-task-intro`);
   await tid('begin').tap();
-  let expectedCredit = 0;
+  let expectedScore = 0, shownSum = 0;
+  const N = turnsOf(task).length;
+  const full = (i) => Math.floor(100 / N) + (i >= N - (100 - Math.floor(100 / N) * N) ? 1 : 0);
+  let ti = -1;
   for (const turn of turnsOf(task)) {
+    ti++;
     // travel screen when scene changes
     if (await tid('arrive').isVisible().catch(() => false)) await tid('arrive').tap();
     await tid('dialog').waitFor();
@@ -57,6 +63,8 @@ async function playTask(taskId, plan /* turnId -> number of wrong picks before c
       await tid('hint').waitFor();
       const kaiAlt = await tid('kai-face').getAttribute('alt');
       assert(kaiAlt.includes('confused'), `${turn.id}: wrong pick #${k + 1} shows hint + Kai confused`);
+      const npcAlt = await tid('npc-portrait').getAttribute('alt');
+      assert(npcAlt.endsWith('confused'), `${turn.id}: wrong pick #${k + 1} NPC expression is confused (${npcAlt})`);
       assert(await page.getByRole('button', { name: wrongs[k], exact: true }).isDisabled(), `${turn.id}: wrong option disabled for retry`);
       if (shotTurn === turn.id && k === 0) await shot(`${tag}-04-dialogue-wrong-hint`);
     }
@@ -66,16 +74,20 @@ async function playTask(taskId, plan /* turnId -> number of wrong picks before c
     const kaiAlt = await tid('kai-face').getAttribute('alt');
     if (nWrong === 0 && turn.id === turnsOf(task)[0].id) assert(kaiAlt.includes('happy'), `${turn.id}: correct -> Kai happy`);
     if (shotTurn === turn.id) await shot(`${tag}-05-dialogue-correct`);
-    expectedCredit += nWrong === 0 ? 1 : nWrong === 1 ? 0.5 : 0;
+    const pts = parseInt((await tid('pts').innerText()).replace('+', ''), 10);
+    const exp = nWrong === 0 ? full(ti) : nWrong === 1 ? Math.ceil(full(ti) / 2) : 0;
+    if (pts !== exp) throw new Error(`ASSERT: ${turn.id} shows +${pts}, expected +${exp}`);
+    shownSum += pts; expectedScore += exp;
     await tid('next').tap();
   }
   await tid('to-result').waitFor();
   if (shotTurn) await shot(`${tag}-06-ending`);
   await tid('to-result').tap();
   await tid('result').waitFor();
-  const expected = Math.round((expectedCredit / turnsOf(task).length) * 100);
+  let maxSum = 0; for (let i = 0; i < N; i++) maxSum += full(i);
+  assert(maxSum === 100, `${taskId} per-turn full points sum to exactly 100`);
   const score = parseInt(await tid('score').innerText(), 10);
-  assert(score === expected, `${taskId} score ${score} == expected ${expected}`);
+  assert(score === expectedScore && score === shownSum, `${taskId} score ${score} == expected ${expectedScore} == sum of shown points ${shownSum}`);
   const nWrongItems = await tid('wrong-item').count();
   assert(nWrongItems === Object.keys(plan).length, `${taskId} result lists ${nWrongItems} wrong items`);
   return score;
@@ -88,6 +100,24 @@ try {
   await shot(`${tag}-01-start`);
   await enterMap();
   await shot(`${tag}-02-map`);
+
+  // ===== BUG-01 regression: taps on DOM sheets must not fall through to Phaser map items
+  for (const id of ['task2', 'task1', 'task2']) {
+    await tid('open-tasks').tap();
+    await tid(`start-${id}`).waitFor();
+    await tid(`start-${id}`).tap();
+    await page.waitForTimeout(400);
+    assert(!(await tid('word-card').isVisible().catch(() => false)), `tap-through: task list 开始 ${id} did not open a map word card`);
+    assert(await tid('intro').isVisible(), `tap-through: task list 开始 ${id} opened the task intro`);
+    await page.getByLabel('退出').tap();
+    await page.waitForFunction(() => window.__aeMap && window.__aeMap.ready(), null, { timeout: 20000 });
+    await page.waitForTimeout(300);
+  }
+  // taps on the bottom bar / sheet close buttons must not move Kai or open items either
+  await tid('open-tasks').tap();
+  await page.locator('.sheet').getByLabel('关闭').tap();
+  await page.waitForTimeout(300);
+  assert(!(await tid('word-card').isVisible().catch(() => false)), 'tap-through: closing sheet did not open a word card');
 
   // tap a word item on the map (bridge)
   const bridge = await page.evaluate(() => window.__aeMap.itemScreen(350, 600));
@@ -176,6 +206,10 @@ try {
   const cmp2 = await tid('compare').innerText();
   assert(cmp2.includes(`+${s2b - s2a}`) && cmp2.includes(`上次 ${s2a}`), `comparison: ${cmp2.replace(/\n/g, ' ')}`);
   assert(await tid('review').isDisabled(), 'review disabled when no wrong answers');
+  const rc = await tid('review').evaluate((el) => { const cs = getComputedStyle(el); return { c: cs.color, b: cs.backgroundColor, o: cs.opacity }; });
+  const lum = (str) => { const [r, g, b] = str.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const L1 = lum(rc.c), L2 = lum(rc.b); const ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+  assert(rc.o === '1' && ratio >= 4.5, `disabled 复习错题 contrast ${ratio.toFixed(2)}:1 (opacity ${rc.o})`);
   await shot(`${tag}-11-result-perfect`);
   await tid('back-map').tap();
   await page.waitForFunction(() => window.__aeMap && window.__aeMap.ready());

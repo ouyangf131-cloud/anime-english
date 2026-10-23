@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CHARACTERS, charImg, bgImg } from '../data/characters.js';
 import { allTurns } from '../tasks/index.js';
 import { speak, stop } from '../lib/speech.js';
-import { shuffle, scoreOf, creditFor } from '../lib/util.js';
+import { shuffle, scoreOf, pointsEarned, turnPoints } from '../lib/util.js';
 import { recordAttempt } from '../lib/store.js';
 import Sentence from './Sentence.jsx';
 import { SpeakPair } from './SpeakButtons.jsx';
@@ -158,7 +158,7 @@ export default function TaskPlayer({ task, onQuit, onFinish }) {
   const spk = showAfter ? turn.after.speaker : turn.speaker;
   const npcExpr = showAfter ? turn.after.expression
     : status === 'correct' ? 'happy'
-    : status === 'wrong' ? (tries >= 2 ? 'surprised' : 'confused')
+    : status === 'wrong' ? 'confused'
     : turn.expression;
   const kaiExpr = status === 'wrong' ? 'confused' : 'happy';
   const ch = CHARACTERS[spk];
@@ -182,11 +182,11 @@ export default function TaskPlayer({ task, onQuit, onFinish }) {
           <img className={`kai-face ${status}`} src={charImg('kai', kaiExpr)} alt={`Kai ${kaiExpr}`} data-testid="kai-face" />
           <div className="kai-say">
             {status === 'wrong' ? (
-              <div className="hint" data-testid="hint">💡 {turn.hint}<div className="hint-sub">再选一次吧（第二次答对得一半分）</div></div>
+              <div className="hint" data-testid="hint">💡 {turn.hint}<div className="hint-sub">{tries === 1 ? `再选一次吧（第二次答对得 ${Math.ceil(turnPoints(idx, turns.length) / 2)} 分）` : '再选一次吧（这题不再得分，但要弄懂哦）'}</div></div>
             ) : status === 'correct' ? (
-              <div className="good" data-testid="good">{tries === 1 ? '✨ 答对了！' : tries === 2 ? '👍 对了！（第二次，得一半分）' : '👌 这次对了'} <span className="pts">+{Math.round(creditFor(tries) * 100 / turns.length)}</span></div>
+              <div className="good" data-testid="good">{tries === 1 ? '✨ 答对了！' : tries === 2 ? '👍 对了！（第二次，得一半分）' : '👌 这次对了'} <span className="pts" data-testid="pts">+{pointsEarned(idx, turns.length, tries)}</span></div>
             ) : (
-              <div className="prompt">{turn.prompt || 'Kai 该怎么回答？'}</div>
+              <div className="prompt">{turn.prompt || 'Kai 该怎么回答？'}<span className="prompt-pts">本题 {turnPoints(idx, turns.length)} 分</span></div>
             )}
           </div>
         </div>

@@ -26,7 +26,7 @@ export const ITEMS = [
 
 // Which NPC offers which tasks (other tasks are "coming soon")
 export const NPC_TALK = {
-  tomo: { line: 'Ha ha! No problem, my friend!', zh: '哈哈！没问题，朋友！' },
+  tomo: { line: 'Ha ha! Hello there, my friend!', zh: '哈哈！你好呀，朋友！' },
   hana: { line: 'Take your time. Would you like some tea?', zh: '慢慢来，要喝点茶吗？' },
   mira: { line: "Follow me. Don't get lost!", zh: '跟着我，别走丢了！' },
 };

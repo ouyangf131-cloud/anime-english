@@ -16,11 +16,27 @@ export default class VillageScene extends Phaser.Scene {
     for (const c of ['kai', 'mira', 'hana', 'tomo']) this.load.image(`${c}_chibi`, `${b}assets/chars/${c}_chibi.webp`);
   }
 
+  // Phaser listens for pointerup/touchend on window, so a tap that started on a DOM
+  // panel above the canvas would still "land" on map objects. Only accept taps that
+  // both started and ended on the canvas, and ignore everything while input is locked.
+  isCanvasTap(p) {
+    const c = this.game.canvas;
+    if (this.locked || this.dragMoved) return false;
+    if (p.downElement !== c) return false;
+    if (p.upElement && p.upElement !== c) return false;
+    return true;
+  }
+
+  setLocked(v) {
+    this.locked = !!v;
+    if (this.input) this.input.enabled = !v;
+  }
+
   create() {
     const map = this.add.image(0, 0, 'map').setOrigin(0).setDisplaySize(MAP_W, MAP_H);
     map.setInteractive();
     map.on('pointerup', (p) => {
-      if (this.dragMoved) return;
+      if (!this.isCanvasTap(p)) return;
       const wp = this.cameras.main.getWorldPoint(p.x, p.y);
       this.walkTo(wp.x, wp.y);
     });
@@ -34,7 +50,7 @@ export default class VillageScene extends Phaser.Scene {
       g.setDepth(5000);
       this.tweens.add({ targets: glow, scale: 1.7, alpha: 0.1, duration: 1300, repeat: -1, ease: 'Sine.easeOut', delay: Math.random() * 1000 });
       const hit = this.add.zone(it.x, it.y, 72, 72).setInteractive().setDepth(5001);
-      hit.on('pointerup', (p, lx, ly, ev) => { ev?.stopPropagation(); if (this.dragMoved) return; this.opts.onItem?.(it); });
+      hit.on('pointerup', (p, lx, ly, ev) => { ev?.stopPropagation(); if (!this.isCanvasTap(p)) return; this.opts.onItem?.(it); });
       return g;
     });
 
@@ -48,7 +64,7 @@ export default class VillageScene extends Phaser.Scene {
       const hit = this.add.zone(spot.x, spot.y - CHIBI_H / 2, 90, CHIBI_H + 20).setInteractive().setDepth(9000);
       hit.on('pointerup', (p, lx, ly, ev) => {
         ev?.stopPropagation();
-        if (this.dragMoved) return;
+        if (!this.isCanvasTap(p)) return;
         const side = this.kai.x < spot.x ? -1 : 1;
         this.walkTo(spot.x + side * 62, spot.y + 4, () => {
           this.kai.setFlipX(side > 0); // face the NPC
@@ -63,6 +79,7 @@ export default class VillageScene extends Phaser.Scene {
       this.npcs[id] = { sprite: s, shadow, marker, hit };
     }
     this.setMarkers(this.opts.markers || {});
+    if (this.locked) this.input.enabled = false;
 
     // Kai
     const k = this.opts.kaiPos || KAI_START;
@@ -76,9 +93,10 @@ export default class VillageScene extends Phaser.Scene {
 
     // camera: cover viewport, allow drag-pan on the overflowing axis
     this.dragMoved = false;
-    this.input.on('pointerdown', (p) => { this.dragStart = { x: p.x, y: p.y, sx: this.cameras.main.scrollX, sy: this.cameras.main.scrollY }; this.dragMoved = false; });
+    this.input.on('pointerdown', (p) => {
+      if (p.downElement !== this.game.canvas) { this.dragStart = null; return; } this.dragStart = { x: p.x, y: p.y, sx: this.cameras.main.scrollX, sy: this.cameras.main.scrollY }; this.dragMoved = false; });
     this.input.on('pointermove', (p) => {
-      if (!p.isDown || !this.dragStart) return;
+      if (!p.isDown || !this.dragStart || this.locked) return;
       const dx = p.x - this.dragStart.x, dy = p.y - this.dragStart.y;
       if (Math.abs(dx) + Math.abs(dy) > 10) this.dragMoved = true;
       if (this.dragMoved) {

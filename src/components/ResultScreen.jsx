@@ -69,7 +69,7 @@ export default function ResultScreen({ result, onReview, onMap, onRetry }) {
         </div>
 
         <div className="result-actions">
-          <button className="btn btn-primary btn-big" onClick={onReview} disabled={r.wrong.length === 0} data-testid="review">复习错题</button>
+          <button className="btn btn-primary btn-big" onClick={onReview} disabled={r.wrong.length === 0} data-testid="review">{r.wrong.length ? '复习错题' : '复习错题（本次没有错题）'}</button>
           <button className="btn btn-big" onClick={onMap} data-testid="back-map">回到地图</button>
           <button className="btn btn-ghost" onClick={onRetry}>再玩一次</button>
         </div>

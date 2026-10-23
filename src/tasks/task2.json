@@ -4,23 +4,45 @@
   "title": "茶屋早餐",
   "titleEn": "Breakfast at the Teahouse",
   "giver": "hana",
-  "characters": ["hana", "tomo", "mira"],
+  "characters": [
+    "hana",
+    "tomo",
+    "mira"
+  ],
   "story": "清晨的雾还没散，茶屋里飘出热茶和饭团的香味。Hana 端着木托盘，笑着朝你招手。",
   "goal": "在茶屋用英语点茶和饭团、问价格、付钱，再和来吃早饭的朋友们聊几句。",
   "keySentences": [
-    { "en": "Good morning!", "zh": "早上好！" },
-    { "en": "Can I have some tea, please?", "zh": "请给我来点茶好吗？" },
-    { "en": "Some rice balls, please.", "zh": "请给我一些饭团。" },
-    { "en": "How much is it?", "zh": "多少钱？" },
-    { "en": "Here you are.", "zh": "给你。" },
-    { "en": "Thank you!", "zh": "谢谢！" }
+    {
+      "en": "Good morning!",
+      "zh": "早上好！"
+    },
+    {
+      "en": "Can I have some tea, please?",
+      "zh": "请给我来点茶好吗？"
+    },
+    {
+      "en": "Some rice balls, please.",
+      "zh": "请给我一些饭团。"
+    },
+    {
+      "en": "How much is it?",
+      "zh": "多少钱？"
+    },
+    {
+      "en": "Here you are.",
+      "zh": "给你。"
+    },
+    {
+      "en": "Thank you!",
+      "zh": "谢谢！"
+    }
   ],
   "ending": {
     "speaker": "tomo",
     "expression": "happy",
-    "line": "Ha ha! No problem, my friend!",
-    "zh": "哈哈！没问题，朋友！",
-    "narration": "吃饱喝足，Tomo 抢着帮你们付了第二轮茶钱。新的一天开始了！"
+    "line": "Ha ha! Hana, more tea for my friends, please!",
+    "zh": "哈哈！Hana，给我的朋友们再来点茶！",
+    "narration": "Tomo 吃得心满意足，还要请大家再喝一壶茶。热闹的早饭结束了，新的一天开始了！"
   },
   "scenes": [
     {
@@ -32,109 +54,194 @@
       "turns": [
         {
           "id": "t2-01",
-          "speaker": "hana", "expression": "happy",
+          "speaker": "hana",
+          "expression": "happy",
           "line": "Good morning, Kai!",
           "zh": "早上好，Kai！",
           "options": [
-            { "en": "Good morning, Hana!", "zh": "早上好，Hana！" },
-            { "en": "Good night, Hana!", "zh": "晚安，Hana！" },
-            { "en": "I'm from China.", "zh": "我来自中国。" }
+            {
+              "en": "Good morning, Hana!",
+              "zh": "早上好，Hana！"
+            },
+            {
+              "en": "Good night, Hana!",
+              "zh": "晚安，Hana！"
+            },
+            {
+              "en": "I'm from China.",
+              "zh": "我来自中国。"
+            }
           ],
           "answer": 0,
           "hint": "现在是早上，见面说 Good morning。Good night 是睡前说的。"
         },
         {
           "id": "t2-02",
-          "speaker": "hana", "expression": "happy",
-          "line": "Take your time. Would you like some tea?",
-          "zh": "慢慢来。要喝点茶吗？",
+          "speaker": "hana",
+          "expression": "happy",
+          "line": "Take your time. Are you hungry this morning?",
+          "zh": "慢慢来。今天早上饿了吗？",
           "options": [
-            { "en": "Yes, please.", "zh": "好的，麻烦了。" },
-            { "en": "I'm fifteen.", "zh": "我十五岁。" },
-            { "en": "Turn left.", "zh": "向左转。" }
+            {
+              "en": "Yes, I'm very hungry!",
+              "zh": "嗯，我好饿！"
+            },
+            {
+              "en": "Yes, I'm from China.",
+              "zh": "是的，我来自中国。"
+            },
+            {
+              "en": "Yes, it's raining.",
+              "zh": "是的，下雨了。"
+            }
           ],
           "answer": 0,
-          "hint": "Would you like …? 是问你要不要，想要就说 Yes, please."
+          "hint": "hungry = 饿。她问你饿不饿，回答 Yes, I'm hungry."
         },
         {
           "id": "t2-03",
-          "speaker": "hana", "expression": "happy",
-          "line": "We have green tea and barley tea. What would you like?",
-          "zh": "我们有绿茶和大麦茶。你想要什么？",
-          "prompt": "你想要一杯绿茶，你说：",
+          "speaker": "hana",
+          "expression": "happy",
+          "line": "We have tea and cold water. What would you like?",
+          "zh": "我们有茶，也有凉水。你想喝什么？",
+          "prompt": "你想喝茶，你说：",
           "options": [
-            { "en": "Can I have some green tea, please?", "zh": "请给我来点绿茶好吗？" },
-            { "en": "Can I have some rain, please?", "zh": "请给我来点雨好吗？" },
-            { "en": "Where is the green tea from?", "zh": "绿茶是哪里来的？" }
+            {
+              "en": "Can I have some tea, please?",
+              "zh": "请给我来点茶好吗？"
+            },
+            {
+              "en": "Can I have some rain, please?",
+              "zh": "请给我来点雨好吗？"
+            },
+            {
+              "en": "Where is the tea from?",
+              "zh": "茶是哪里来的？"
+            }
           ],
           "answer": 0,
           "hint": "点东西的万能句：Can I have some …, please?"
         },
         {
           "id": "t2-04",
-          "speaker": "hana", "expression": "happy",
+          "speaker": "hana",
+          "expression": "happy",
           "line": "Sure! And what would you like to eat?",
           "zh": "好的！那你想吃点什么？",
           "prompt": "你想吃饭团（rice balls），你说：",
           "options": [
-            { "en": "Some rice balls, please.", "zh": "请给我一些饭团。" },
-            { "en": "Some coins, please.", "zh": "请给我一些铜币。" },
-            { "en": "Nice to meet you.", "zh": "很高兴认识你。" }
+            {
+              "en": "Some rice balls, please.",
+              "zh": "请给我一些饭团。"
+            },
+            {
+              "en": "Some coins, please.",
+              "zh": "请给我一些铜币。"
+            },
+            {
+              "en": "Nice to meet you.",
+              "zh": "很高兴认识你。"
+            }
           ],
           "answer": 0,
           "hint": "饭团是 rice balls，“请给我…” = Some …, please."
         },
         {
           "id": "t2-05",
-          "speaker": "hana", "expression": "happy",
-          "line": "Here you are. Green tea and two rice balls.",
-          "zh": "给你。一杯绿茶和两个饭团。",
+          "speaker": "hana",
+          "expression": "happy",
+          "line": "Here you are. Tea and two rice balls.",
+          "zh": "给你。一杯茶和两个饭团。",
           "options": [
-            { "en": "Thank you!", "zh": "谢谢！" },
-            { "en": "You're late.", "zh": "你迟到了。" },
-            { "en": "Where are you from?", "zh": "你是哪里人？" }
+            {
+              "en": "Thank you!",
+              "zh": "谢谢！"
+            },
+            {
+              "en": "You're late.",
+              "zh": "你迟到了。"
+            },
+            {
+              "en": "Where are you from?",
+              "zh": "你是哪里人？"
+            }
           ],
           "answer": 0,
           "hint": "别人把东西递给你（Here you are），你要说谢谢。"
         },
         {
           "id": "t2-06",
-          "speaker": "hana", "expression": "happy",
+          "speaker": "hana",
+          "expression": "happy",
           "line": "Is everything OK?",
           "zh": "一切都还好吗？",
           "prompt": "很好吃！吃完你想问一共多少钱：",
           "options": [
-            { "en": "Yes, it's very good! How much is it?", "zh": "很好，非常好吃！多少钱？" },
-            { "en": "Yes! How old is it?", "zh": "好！它几岁了？" },
-            { "en": "Yes! Where is it?", "zh": "好！它在哪里？" }
+            {
+              "en": "Yes, it's very good! How much is it?",
+              "zh": "很好，非常好吃！多少钱？"
+            },
+            {
+              "en": "Yes! How old is it?",
+              "zh": "好！它几岁了？"
+            },
+            {
+              "en": "Yes! Where is it?",
+              "zh": "好！它在哪里？"
+            }
           ],
           "answer": 0,
           "hint": "问价格用 How much is it? How old 是问年龄。"
         },
         {
           "id": "t2-07",
-          "speaker": "hana", "expression": "happy",
+          "speaker": "hana",
+          "expression": "happy",
           "line": "The tea is two coins, and the rice balls are four coins. So that's six coins, please.",
           "zh": "茶两个铜币，饭团四个铜币。一共六个铜币。",
           "prompt": "听清楚价格，把钱递给 Hana：",
           "options": [
-            { "en": "Six coins. Here you are.", "zh": "六个铜币，给你。" },
-            { "en": "Two coins. Here you are.", "zh": "两个铜币，给你。" },
-            { "en": "Ten coins. Here you are.", "zh": "十个铜币，给你。" }
+            {
+              "en": "Six coins. Here you are.",
+              "zh": "六个铜币，给你。"
+            },
+            {
+              "en": "Two coins. Here you are.",
+              "zh": "两个铜币，给你。"
+            },
+            {
+              "en": "Ten coins. Here you are.",
+              "zh": "十个铜币，给你。"
+            }
           ],
           "answer": 0,
           "hint": "two（2）+ four（4）= six（6）。付钱时说 Here you are（给你）。",
-          "after": { "speaker": "hana", "expression": "happy", "line": "Six coins... one, two, three, four, five, six. Yes! Thank you, Kai.", "zh": "六个铜币……一、二、三、四、五、六。对了！谢谢你，Kai。" }
+          "after": {
+            "speaker": "hana",
+            "expression": "happy",
+            "line": "Six coins... one, two, three, four, five, six. Yes! Thank you, Kai.",
+            "zh": "六个铜币……一、二、三、四、五、六。对了！谢谢你，Kai。"
+          }
         },
         {
           "id": "t2-08",
-          "speaker": "hana", "expression": "confused",
-          "line": "Oh no, I forgot your rice balls are cold. I'm sorry!",
-          "zh": "哎呀，我忘了你的饭团是凉的。对不起！",
+          "speaker": "hana",
+          "expression": "confused",
+          "line": "Oh no, your rice balls are cold. I'm sorry!",
+          "zh": "哎呀，你的饭团凉了，对不起！",
           "options": [
-            { "en": "That's OK. They're good!", "zh": "没关系，很好吃！" },
-            { "en": "How much is it?", "zh": "多少钱？" },
-            { "en": "Nice to meet you.", "zh": "很高兴认识你。" }
+            {
+              "en": "That's OK. They're good!",
+              "zh": "没关系，很好吃！"
+            },
+            {
+              "en": "How much is it?",
+              "zh": "多少钱？"
+            },
+            {
+              "en": "Nice to meet you.",
+              "zh": "很高兴认识你。"
+            }
           ],
           "answer": 0,
           "hint": "别人道歉（I'm sorry）时，可以说 That's OK（没关系）。"
@@ -150,44 +257,79 @@
       "turns": [
         {
           "id": "t2-09",
-          "speaker": "tomo", "expression": "happy",
+          "speaker": "tomo",
+          "expression": "happy",
           "line": "Ha ha! Good morning, my friend!",
           "zh": "哈哈！早上好，朋友！",
           "options": [
-            { "en": "Good morning, Tomo!", "zh": "早上好，Tomo！" },
-            { "en": "Goodbye, Tomo!", "zh": "再见，Tomo！" },
-            { "en": "How much, Tomo?", "zh": "多少钱，Tomo？" }
+            {
+              "en": "Good morning, Tomo!",
+              "zh": "早上好，Tomo！"
+            },
+            {
+              "en": "Goodbye, Tomo!",
+              "zh": "再见，Tomo！"
+            },
+            {
+              "en": "How much, Tomo?",
+              "zh": "多少钱，Tomo？"
+            }
           ],
           "answer": 0,
           "hint": "早上见到朋友，回一句 Good morning。"
         },
         {
           "id": "t2-10",
-          "speaker": "tomo", "expression": "confused",
+          "speaker": "tomo",
+          "expression": "confused",
           "line": "I'm so hungry! What's good here?",
           "zh": "我饿坏了！这里什么好吃？",
           "options": [
-            { "en": "The rice balls are very good.", "zh": "饭团很好吃。" },
-            { "en": "The river is far.", "zh": "河很远。" },
-            { "en": "I'm from China.", "zh": "我来自中国。" }
+            {
+              "en": "The rice balls are very good.",
+              "zh": "饭团很好吃。"
+            },
+            {
+              "en": "The river is far.",
+              "zh": "河很远。"
+            },
+            {
+              "en": "I'm from China.",
+              "zh": "我来自中国。"
+            }
           ],
           "answer": 0,
           "hint": "他问哪样好吃，推荐你刚吃过的 rice balls。"
         },
         {
           "id": "t2-11",
-          "speaker": "tomo", "expression": "surprised",
+          "speaker": "tomo",
+          "expression": "surprised",
           "line": "Three rice balls, please! Kai, how much is it? I can't hear Hana!",
           "zh": "来三个饭团！Kai，多少钱？我听不见 Hana 说话！",
           "prompt": "Hana 小声说：Three rice balls are six coins. 你告诉 Tomo：",
           "options": [
-            { "en": "It's six coins.", "zh": "六个铜币。" },
-            { "en": "It's sixteen coins.", "zh": "十六个铜币。" },
-            { "en": "It's six o'clock.", "zh": "现在六点。" }
+            {
+              "en": "It's six coins.",
+              "zh": "六个铜币。"
+            },
+            {
+              "en": "It's sixteen coins.",
+              "zh": "十六个铜币。"
+            },
+            {
+              "en": "It's six o'clock.",
+              "zh": "现在六点。"
+            }
           ],
           "answer": 0,
           "hint": "six = 6，sixteen = 16。说价格用 It's … coins.",
-          "after": { "speaker": "tomo", "expression": "happy", "line": "Six coins? Ha ha! Here you are, Hana!", "zh": "六个铜币？哈哈！给你，Hana！" }
+          "after": {
+            "speaker": "tomo",
+            "expression": "happy",
+            "line": "Six coins? Ha ha! Here you are, Hana!",
+            "zh": "六个铜币？哈哈！给你，Hana！"
+          }
         }
       ]
     },
@@ -200,41 +342,76 @@
       "turns": [
         {
           "id": "t2-12",
-          "speaker": "mira", "expression": "surprised",
+          "speaker": "mira",
+          "expression": "surprised",
           "line": "Kai! You're here! Is the tea good?",
           "zh": "Kai！你在这儿啊！茶好喝吗？",
           "options": [
-            { "en": "Yes, it's very good!", "zh": "嗯，非常好喝！" },
-            { "en": "Yes, I'm from China.", "zh": "是的，我来自中国。" },
-            { "en": "No, it's raining.", "zh": "不，下雨了。" }
+            {
+              "en": "Yes, it's very good!",
+              "zh": "嗯，非常好喝！"
+            },
+            {
+              "en": "Yes, I'm from China.",
+              "zh": "是的，我来自中国。"
+            },
+            {
+              "en": "No, it's raining.",
+              "zh": "不，下雨了。"
+            }
           ],
           "answer": 0,
           "hint": "她问茶好不好喝，回答 Yes, it's good."
         },
         {
           "id": "t2-13",
-          "speaker": "mira", "expression": "happy",
+          "speaker": "mira",
+          "expression": "happy",
           "line": "Hmm... I want some tea too.",
           "zh": "嗯……我也想喝点茶。",
           "prompt": "帮 Mira 向 Hana 点一杯茶：",
           "options": [
-            { "en": "Hana, can I have some tea for Mira, please?", "zh": "Hana，请给 Mira 来点茶好吗？" },
-            { "en": "Hana, can I have some Mira, please?", "zh": "Hana，请给我来点 Mira 好吗？" },
-            { "en": "Hana, how old is the tea?", "zh": "Hana，这茶几岁了？" }
+            {
+              "en": "Hana, can I have some tea for Mira, please?",
+              "zh": "Hana，请给 Mira 来点茶好吗？"
+            },
+            {
+              "en": "Hana, can I have some Mira, please?",
+              "zh": "Hana，请给我来点 Mira 好吗？"
+            },
+            {
+              "en": "Hana, how old is the tea?",
+              "zh": "Hana，这茶几岁了？"
+            }
           ],
           "answer": 0,
           "hint": "还是那句：Can I have some tea …, please? 给 Mira 点就加 for Mira。",
-          "after": { "speaker": "hana", "expression": "happy", "line": "Of course! Here you are, Mira.", "zh": "当然！给你，Mira。" }
+          "after": {
+            "speaker": "hana",
+            "expression": "happy",
+            "line": "Of course! Here you are, Mira.",
+            "zh": "当然！给你，Mira。"
+          }
         },
         {
           "id": "t2-14",
-          "speaker": "hana", "expression": "happy",
+          "speaker": "hana",
+          "expression": "happy",
           "line": "Have a nice day, Kai!",
           "zh": "祝你今天愉快，Kai！",
           "options": [
-            { "en": "Thank you! You too!", "zh": "谢谢！你也是！" },
-            { "en": "Nice to meet you.", "zh": "很高兴认识你。" },
-            { "en": "Sorry, I'm late.", "zh": "对不起，我迟到了。" }
+            {
+              "en": "Thank you! You too!",
+              "zh": "谢谢！你也是！"
+            },
+            {
+              "en": "Nice to meet you.",
+              "zh": "很高兴认识你。"
+            },
+            {
+              "en": "Sorry, I'm late.",
+              "zh": "对不起，我迟到了。"
+            }
           ],
           "answer": 0,
           "hint": "别人祝你愉快，说谢谢，再加 You too（你也是）。你们已经认识了，不用再说 Nice to meet you。"

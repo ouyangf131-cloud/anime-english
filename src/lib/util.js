@@ -13,10 +13,21 @@ export function fmtTime(ms) {
   return m > 0 ? `${m} 分 ${String(s % 60).padStart(2, '0')} 秒` : `${s} 秒`;
 }
 
-// first try = 1, second try = 0.5, later = 0
-export const creditFor = (tries) => (tries <= 1 ? 1 : tries === 2 ? 0.5 : 0);
+// Integer points per turn that add up to exactly 100:
+// e.g. 14 turns -> twelve turns worth 7 and the last two worth 8.
+export function turnPoints(index, total) {
+  const base = Math.floor(100 / total);
+  const rem = 100 - base * total;
+  return base + (index >= total - rem ? 1 : 0);
+}
 
+// first try = full points, second try = half (rounded up), later = 0
+export function pointsEarned(index, total, tries) {
+  const full = turnPoints(index, total);
+  return tries <= 1 ? full : tries === 2 ? Math.ceil(full / 2) : 0;
+}
+
+// results[i] = { tries } for turn i; the score is exactly the sum of the points shown per turn
 export function scoreOf(results, total) {
-  const sum = results.reduce((a, r) => a + creditFor(r.tries), 0);
-  return Math.round((sum / total) * 100);
+  return results.reduce((a, r, i) => a + pointsEarned(i, total, r.tries), 0);
 }
