@@ -254,8 +254,10 @@ img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
 .result-title { font-size: 20px; font-weight: 800; text-align: center; }
 .result-hero { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 6px 0; }
 .result-hero img { width: 110px; height: 110px; object-fit: cover; object-position: 50% 5%; border-radius: 50%; background: #e8dcbc; border: 3px solid #fff; }
-.score { font-size: 60px; font-weight: 900; color: var(--green); line-height: 1; }
+.result-hero > div { min-width: 0; }
+.score { font-size: clamp(44px, 14vw, 60px); font-weight: 900; color: var(--green); line-height: 1; white-space: nowrap; }
 .score small { font-size: 20px; }
+@media (max-width: 340px) { .result-hero { gap: 10px; } .result-hero img { width: 92px; height: 92px; } }
 .stars { color: var(--gold); font-size: 26px; letter-spacing: 2px; }
 .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; margin: 8px 0; }
 .result-grid div { background: #fff; border-radius: 12px; padding: 8px 4px; display: flex; flex-direction: column; }

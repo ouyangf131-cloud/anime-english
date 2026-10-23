@@ -7,6 +7,13 @@ export function shuffle(arr) {
   return a;
 }
 
+// Compare two attempt durations using the same whole seconds shown on screen.
+export function timeCompare(curMs, prevMs) {
+  const d = Math.max(0, Math.round(curMs / 1000)) - Math.max(0, Math.round(prevMs / 1000));
+  if (d === 0) return '用时相同';
+  return d < 0 ? `用时快了 ${-d} 秒` : `用时慢了 ${d} 秒`;
+}
+
 export function fmtTime(ms) {
   const s = Math.max(0, Math.round(ms / 1000));
   const m = Math.floor(s / 60);

@@ -1,5 +1,7 @@
 import React from 'react';
 import { unlock, speak } from '../lib/speech.js';
+import { preloadBgs } from '../lib/preload.js';
+import { SCENE_BGS } from '../data/characters.js';
 import { charImg, bgImg, ORDER } from '../data/characters.js';
 
 export default function StartScreen({ onEnter }) {
@@ -7,6 +9,8 @@ export default function StartScreen({ onEnter }) {
     unlock(); // iOS Safari: speech must be started from a tap
     onEnter(); // navigation calls stop(), so speak after it (still inside this tap)
     speak("Let's go and see!");
+    // Low-priority warm-up of all scene backgrounds once the map has started loading.
+    setTimeout(() => preloadBgs(SCENE_BGS), 1500);
   };
   return (
     <div className="start" style={{ backgroundImage: `url(${bgImg('forest')})` }}>

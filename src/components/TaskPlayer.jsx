@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { CHARACTERS, charImg, bgImg } from '../data/characters.js';
 import { allTurns } from '../tasks/index.js';
 import { speak, stop } from '../lib/speech.js';
+import { preloadBgs } from '../lib/preload.js';
 import { shuffle, scoreOf, pointsEarned, turnPoints, fmtPts } from '../lib/util.js';
 import { recordAttempt } from '../lib/store.js';
 import Sentence from './Sentence.jsx';
@@ -34,6 +35,8 @@ export default function TaskPlayer({ task, onQuit, onFinish }) {
   }, [phase, idx]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => stop(), []);
+  // N-05: fetch every scene background of this task while the intro is showing.
+  useEffect(() => { preloadBgs(task.scenes.map((s) => s.bg)); }, [task]);
 
   // New turn: start at the top of the dialogue. After a wrong / right answer the hint grows,
   // so scroll the bottom area to the end to keep every option (or 继续) on screen.

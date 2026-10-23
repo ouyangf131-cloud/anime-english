@@ -2,6 +2,7 @@
 // Usage: npm run build && npx vite preview --port 4173 &  then  BROWSER=webkit node tests/e2e.mjs [baseUrl]
 import { webkit, chromium, devices } from 'playwright';
 import fs from 'node:fs';
+import { timeCompare } from '../src/lib/util.js';
 
 const BASE = process.argv[2] || 'http://localhost:4173/anime-english/';
 const engine = process.env.BROWSER === 'chromium' ? chromium : webkit;
@@ -62,6 +63,7 @@ async function checkVisible(label) {
   return true;
 }
 let visChecks = 0;
+let scoreLineChecks = 0;
 const travelCards = [];
 
 async function playTask(taskId, plan /* turnId -> number of wrong picks before correct */, shotTurn) {
@@ -139,6 +141,9 @@ async function playTask(taskId, plan /* turnId -> number of wrong picks before c
   let maxSum = 0; for (let i = 0; i < N; i++) maxSum += full(i);
   assert(maxSum === 100, `${taskId} per-turn full points sum to exactly 100`);
   const score = parseFloat(await tid('score').innerText());
+  const sb = await tid('score-box').evaluate((el) => { const a = el.querySelector('span').getBoundingClientRect(), b = el.querySelector('small').getBoundingClientRect(), c = el.getBoundingClientRect(), p = el.closest('.result-card').getBoundingClientRect(); return { sameLine: b.top < a.bottom && b.bottom > a.top, h: c.height, right: c.right, pr: p.right }; });
+  if (!(sb.sameLine && sb.h < 75 && sb.right <= sb.pr)) throw new Error(`ASSERT: ${taskId} score ${score} and 分 not on one line / overflow: ${JSON.stringify(sb)}`);
+  scoreLineChecks++;
   assert(score === expectedScore && score === shownSum, `${taskId} score ${score} == expected ${expectedScore} == sum of shown points ${shownSum}`);
   const nWrongItems = await tid('wrong-item').count();
   assert(nWrongItems === Object.keys(plan).length, `${taskId} result lists ${nWrongItems} wrong items`);
@@ -241,6 +246,7 @@ try {
   await tid('open-tasks').tap();
   await tid('start-task2').tap();
   const s2a = await playTask('task2', { 't2-08': 1 }, 't2-08');
+  if (VP[0] <= 320 && tag === 'webkit') { await page.waitForTimeout(400); await page.screenshot({ path: `${SHOTS}short-${VP.join('x')}-result-decimal.jpg`, type: 'jpeg', quality: 82 }); }
   await tid('back-map').tap();
   await page.waitForFunction(() => window.__aeMap && window.__aeMap.ready());
 
@@ -287,6 +293,9 @@ try {
   const s2b = await playTask('task2', {}, null);
   const cmp2 = await tid('compare').innerText();
   assert(cmp2.includes(`+${s2b - s2a}`) && cmp2.includes(`上次 ${s2a}`), `comparison: ${cmp2.replace(/\n/g, ' ')}`);
+  const h2 = await page.evaluate(() => JSON.parse(localStorage.getItem('anime-english.v1')).tasks.task2.history.slice(-2));
+  assert(cmp2.includes(timeCompare(h2[1].timeMs, h2[0].timeMs)) && !/快了 0 秒|慢了 0 秒/.test(cmp2), `time comparison wording matches '${timeCompare(h2[1].timeMs, h2[0].timeMs)}'`);
+  assert(timeCompare(5200, 4800) === '用时相同' && timeCompare(3000, 5000) === '用时快了 2 秒' && timeCompare(9000, 5000) === '用时慢了 4 秒', 'timeCompare: same / faster / slower wording');
   assert(await tid('review').isDisabled(), 'review disabled when no wrong answers');
   const rc = await tid('review').evaluate((el) => { const cs = getComputedStyle(el); return { c: cs.color, b: cs.backgroundColor, o: cs.opacity }; });
   const lum = (str) => { const [r, g, b] = str.match(/\d+(\.\d+)?/g).slice(0, 3).map(Number).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
@@ -319,6 +328,43 @@ try {
   // Layout sanity: no horizontal overflow, tap targets >= 44px on map bar
   const ok = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   assert(ok, 'no horizontal overflow');
+  log('score one-line checks:', scoreLineChecks);
+  // ===== N-05: fresh session, Task 2 without Task 1 -> every Task 2 background is cached before its card
+  {
+    const ctx2 = await browser.newContext({ ...devices['iPhone 13'], viewport: { width: VP[0], height: VP[1] }, deviceScaleFactor: 2, locale: 'zh-CN' });
+    const p2 = await ctx2.newPage();
+    p2.on('pageerror', (e) => errors.push('fresh: ' + e.message));
+    await p2.goto(BASE, { waitUntil: 'networkidle' });
+    await p2.evaluate(() => localStorage.clear());
+    await p2.reload({ waitUntil: 'networkidle' });
+    await p2.getByText('点击进入村子').tap();
+    await p2.waitForFunction(() => window.__aeMap && window.__aeMap.ready(), null, { timeout: 20000 });
+    await p2.getByTestId('open-tasks').tap();
+    await p2.getByTestId('start-task2').tap();
+    await p2.getByTestId('intro').waitFor();
+    await p2.getByTestId('begin').tap();
+    const loaded = (bg) => p2.evaluate((bg) => {
+      const e = performance.getEntriesByType('resource').find((r) => r.name.endsWith(`/assets/bg/${bg}.webp`));
+      return !!e && e.responseEnd > 0 && (window.__aePreloaded || []).includes(bg);
+    }, bg);
+    const t2 = tasks.task2;
+    for (const [si, sc] of t2.scenes.entries()) {
+      if (si === 0) { await p2.locator('[data-testid=travel], [data-testid=dialog]').first().waitFor(); if (await p2.getByTestId('travel').isVisible()) await p2.getByTestId('arrive').tap(); }
+      else {
+        await p2.getByTestId('travel').waitFor();
+        assert(await loaded(sc.bg), `fresh Task 2: ${sc.bg}.webp already loaded when the card to ${sc.place} appears`);
+        if (SAVE_SHOTS && sc.id === 'forge') { await p2.waitForTimeout(100); await p2.screenshot({ path: `${SHOTS}${tag}-13-fresh-task2-card-forge.jpg`, type: 'jpeg', quality: 82 }); }
+        await p2.getByTestId('arrive').tap();
+      }
+      for (const u of sc.turns) {
+        await p2.getByText(u.line, { exact: true }).waitFor();
+        await p2.getByRole('button', { name: u.options[u.answer].en, exact: true }).tap();
+        await p2.getByTestId('next').tap();
+      }
+    }
+    await p2.getByTestId('to-result').waitFor();
+    await ctx2.close();
+  }
   log('transition cards seen:', travelCards.join(', '));
   assert(travelCards.includes('task2:forge') && travelCards.includes('task2:river'), 'task2 transition cards to forge and river shown');
   const sp2 = await page.evaluate(() => ({ log: window.__aeSpeech.log.slice(), st: window.__aeSpeech.state() }));

@@ -79,8 +79,8 @@
           "id": "t2-02",
           "speaker": "hana",
           "expression": "happy",
-          "line": "Good morning! Are you hungry?",
-          "zh": "早上好！饿了吗？",
+          "line": "Are you hungry this morning?",
+          "zh": "今天早上饿了吗？",
           "options": [
             {
               "en": "Yes, I'm very hungry!",
@@ -96,7 +96,7 @@
             }
           ],
           "answer": 0,
-          "hint": "hungry = 饿。她问你饿不饿，饿了就说 Yes, I'm very hungry!"
+          "hint": "hungry = 饿。她问你早上饿不饿，饿了就说 Yes, I'm very hungry!"
         },
         {
           "id": "t2-03",
