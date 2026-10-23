@@ -1,0 +1,241 @@
+{
+  "id": "task1",
+  "order": 1,
+  "title": "初来乍到",
+  "titleEn": "Hello, Village!",
+  "giver": "tomo",
+  "characters": ["tomo", "mira", "hana"],
+  "story": "Kai 背着弓箭，第一次走进山林里的小村。铁匠铺的炉火正旺，一个大嗓门的大叔扛着铁锤朝你挥手……",
+  "goal": "认识村里的三个人：铁匠 Tomo、森林女孩 Mira 和茶屋的 Hana，用英语介绍自己。",
+  "keySentences": [
+    { "en": "Hi, I'm Kai.", "zh": "嗨，我是 Kai。" },
+    { "en": "Nice to meet you.", "zh": "很高兴认识你。" },
+    { "en": "Where are you from?", "zh": "你是哪里人？" },
+    { "en": "I'm from China.", "zh": "我来自中国。" },
+    { "en": "How old are you?", "zh": "你几岁了？" },
+    { "en": "Thank you!", "zh": "谢谢！" }
+  ],
+  "ending": {
+    "speaker": "hana",
+    "expression": "happy",
+    "line": "Take your time. Would you like some tea?",
+    "zh": "慢慢来。要喝点茶吗？",
+    "narration": "天色渐晚，你已经认识了村里的三位新朋友。明天早上，去 Hana 的茶屋吃早饭吧！"
+  },
+  "scenes": [
+    {
+      "id": "forge",
+      "bg": "forge",
+      "place": "铁匠铺",
+      "placeEn": "The Forge",
+      "npc": "tomo",
+      "turns": [
+        {
+          "id": "t1-01",
+          "speaker": "tomo", "expression": "happy",
+          "line": "Ha ha! Hello there, young traveler!",
+          "zh": "哈哈！你好呀，年轻的旅人！",
+          "options": [
+            { "en": "Hi, I'm Kai.", "zh": "嗨，我是 Kai。" },
+            { "en": "Goodbye. See you!", "zh": "再见，回头见！" },
+            { "en": "It's five coins.", "zh": "五个铜币。" }
+          ],
+          "answer": 0,
+          "hint": "他在跟你打招呼，你也打个招呼，再说出自己的名字：Hi, I'm …",
+          "after": { "speaker": "tomo", "expression": "happy", "line": "Kai! Good name! I'm Tomo, the blacksmith.", "zh": "Kai！好名字！我是 Tomo，村里的铁匠。" }
+        },
+        {
+          "id": "t1-02",
+          "speaker": "tomo", "expression": "happy",
+          "line": "Nice to meet you, Kai!",
+          "zh": "很高兴认识你，Kai！",
+          "options": [
+            { "en": "Nice to meet you, too.", "zh": "我也很高兴认识你。" },
+            { "en": "I'm cold.", "zh": "我好冷。" },
+            { "en": "How much is it?", "zh": "这个多少钱？" }
+          ],
+          "answer": 0,
+          "hint": "对方说“很高兴认识你”，你回同样的话，最后加一个 too（也）。"
+        },
+        {
+          "id": "t1-03",
+          "speaker": "tomo", "expression": "surprised",
+          "line": "Wow, a bow and arrows! Where are you from?",
+          "zh": "哇，还背着弓箭！你是哪里人？",
+          "options": [
+            { "en": "I'm from China.", "zh": "我来自中国。" },
+            { "en": "I'm fifteen.", "zh": "我十五岁。" },
+            { "en": "It's raining.", "zh": "下雨了。" }
+          ],
+          "answer": 0,
+          "hint": "Where are you from? 问的是“你从哪里来”，用 I'm from … 回答。"
+        },
+        {
+          "id": "t1-04",
+          "speaker": "tomo", "expression": "surprised",
+          "line": "China? So far away! Welcome to our village!",
+          "zh": "中国？那么远啊！欢迎来到我们村！",
+          "options": [
+            { "en": "Thank you!", "zh": "谢谢！" },
+            { "en": "Sorry, I'm late.", "zh": "对不起，我迟到了。" },
+            { "en": "Go straight.", "zh": "直走。" }
+          ],
+          "answer": 0,
+          "hint": "别人欢迎你，最自然的回应是道谢。"
+        },
+        {
+          "id": "t1-05",
+          "speaker": "tomo", "expression": "happy",
+          "line": "So, how are you today, my friend?",
+          "zh": "那么，你今天怎么样，朋友？",
+          "options": [
+            { "en": "I'm fine, thank you.", "zh": "我很好，谢谢。" },
+            { "en": "I'm from a cup.", "zh": "我来自一个杯子。" },
+            { "en": "Yes, it's far.", "zh": "是的，很远。" }
+          ],
+          "answer": 0,
+          "hint": "How are you? 是问你好不好，回答 I'm fine 或 I'm good。"
+        },
+        {
+          "id": "t1-06",
+          "speaker": "tomo", "expression": "happy",
+          "line": "Ha ha! Good! Go and meet Mira. She is by the forest.",
+          "zh": "哈哈！很好！去见见 Mira 吧，她在森林边上。",
+          "options": [
+            { "en": "OK. Thank you, Tomo!", "zh": "好的，谢谢你，Tomo！" },
+            { "en": "Can I have some tea, please?", "zh": "请给我一些茶好吗？" },
+            { "en": "I'm fourteen.", "zh": "我十四岁。" }
+          ],
+          "answer": 0,
+          "hint": "Tomo 给你指路，答应一声并谢谢他。",
+          "after": { "speaker": "tomo", "expression": "happy", "line": "No problem, my friend!", "zh": "没问题，朋友！" }
+        }
+      ]
+    },
+    {
+      "id": "forest",
+      "bg": "forest",
+      "place": "森林边",
+      "placeEn": "The Forest Edge",
+      "npc": "mira",
+      "turns": [
+        {
+          "id": "t1-07",
+          "speaker": "mira", "expression": "confused",
+          "line": "Hey! Stop there. Who are you?",
+          "zh": "喂！站住。你是谁？",
+          "options": [
+            { "en": "Hi, I'm Kai.", "zh": "嗨，我是 Kai。" },
+            { "en": "Yes, please.", "zh": "好的，麻烦了。" },
+            { "en": "It's near here.", "zh": "就在这附近。" }
+          ],
+          "answer": 0,
+          "hint": "Who are you? 问“你是谁”，介绍你的名字。"
+        },
+        {
+          "id": "t1-08",
+          "speaker": "mira", "expression": "happy",
+          "line": "Kai, huh? I'm Mira. And this is Yuki, my wolf.",
+          "zh": "Kai 是吧？我是 Mira。这是 Yuki，我的狼。",
+          "options": [
+            { "en": "Nice to meet you, Mira.", "zh": "很高兴认识你，Mira。" },
+            { "en": "How much is Yuki?", "zh": "Yuki 多少钱？" },
+            { "en": "Here you are.", "zh": "给你。" }
+          ],
+          "answer": 0,
+          "hint": "第一次见面要说 Nice to meet you，后面可以加上对方的名字。"
+        },
+        {
+          "id": "t1-09",
+          "speaker": "mira", "expression": "confused",
+          "line": "You're not from here. Where are you from?",
+          "zh": "你不是这里的人。你是哪里人？",
+          "options": [
+            { "en": "I'm from China.", "zh": "我来自中国。" },
+            { "en": "I'm Kai.", "zh": "我是 Kai。" },
+            { "en": "It's cold.", "zh": "天好冷。" }
+          ],
+          "answer": 0,
+          "hint": "她问你从哪里来（from），不是问名字。"
+        },
+        {
+          "id": "t1-10",
+          "speaker": "mira", "expression": "surprised",
+          "line": "China? That's very far!",
+          "zh": "中国？那可真远！",
+          "prompt": "你也想问问 Mira 是哪里人，你说：",
+          "options": [
+            { "en": "Where are you from?", "zh": "你是哪里人？" },
+            { "en": "Where is the tea?", "zh": "茶在哪里？" },
+            { "en": "What's the weather like?", "zh": "天气怎么样？" }
+          ],
+          "answer": 0,
+          "hint": "问别人从哪里来：Where are you from?",
+          "after": { "speaker": "mira", "expression": "happy", "line": "I'm from here. The forest is my home.", "zh": "我就是这里人。森林就是我的家。" }
+        },
+        {
+          "id": "t1-11",
+          "speaker": "mira", "expression": "confused",
+          "line": "You look young. How old are you?",
+          "zh": "你看起来挺小的。你几岁了？",
+          "options": [
+            { "en": "I'm fifteen.", "zh": "我十五岁。" },
+            { "en": "I'm from China.", "zh": "我来自中国。" },
+            { "en": "Thank you!", "zh": "谢谢！" }
+          ],
+          "answer": 0,
+          "hint": "How old 问年龄。Kai 今年 15 岁：I'm fifteen.",
+          "after": { "speaker": "mira", "expression": "happy", "line": "Ha! I'm fourteen. But I know the forest better.", "zh": "哈！我十四岁。不过森林我比你熟。" }
+        },
+        {
+          "id": "t1-12",
+          "speaker": "mira", "expression": "happy",
+          "line": "Come on. I'll show you the teahouse. Follow me. Don't get lost!",
+          "zh": "走吧，我带你去茶屋。跟着我，别走丢了！",
+          "options": [
+            { "en": "OK! Let's go and see!", "zh": "好！走，去看看！" },
+            { "en": "I'm cold.", "zh": "我好冷。" },
+            { "en": "Sorry, I'm late.", "zh": "对不起，我迟到了。" }
+          ],
+          "answer": 0,
+          "hint": "Mira 要带你去茶屋，痛快地答应她：OK!"
+        }
+      ]
+    },
+    {
+      "id": "teahouse",
+      "bg": "teahouse",
+      "place": "茶屋",
+      "placeEn": "The Teahouse",
+      "npc": "hana",
+      "turns": [
+        {
+          "id": "t1-13",
+          "speaker": "hana", "expression": "surprised",
+          "line": "Oh! Hello. You're new here. I'm Hana.",
+          "zh": "哦！你好。你是新来的吧。我是 Hana。",
+          "options": [
+            { "en": "Hi, Hana. I'm Kai. Nice to meet you.", "zh": "嗨，Hana。我是 Kai。很高兴认识你。" },
+            { "en": "How much is it?", "zh": "这个多少钱？" },
+            { "en": "Turn left.", "zh": "向左转。" }
+          ],
+          "answer": 0,
+          "hint": "又认识一个新朋友：打招呼 + 说名字 + Nice to meet you。"
+        },
+        {
+          "id": "t1-14",
+          "speaker": "hana", "expression": "happy",
+          "line": "Nice to meet you too, Kai. Come for breakfast tomorrow!",
+          "zh": "我也很高兴认识你，Kai。明天来吃早饭吧！",
+          "options": [
+            { "en": "Thank you! See you tomorrow.", "zh": "谢谢！明天见。" },
+            { "en": "I'm from China.", "zh": "我来自中国。" },
+            { "en": "Where is the river?", "zh": "河在哪里？" }
+          ],
+          "answer": 0,
+          "hint": "Hana 邀请你明天来吃早饭，谢谢她，再说“明天见”。"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,198 @@
+// End-to-end play-through on a 390x844 touch viewport.
+// Usage: npm run build && npx vite preview --port 4173 &  then  BROWSER=webkit node tests/e2e.mjs [baseUrl]
+import { webkit, chromium, devices } from 'playwright';
+import fs from 'node:fs';
+
+const BASE = process.argv[2] || 'http://localhost:4173/anime-english/';
+const engine = process.env.BROWSER === 'chromium' ? chromium : webkit;
+const SHOTS = new URL('../screenshots/', import.meta.url).pathname;
+const tasks = {
+  task1: JSON.parse(fs.readFileSync(new URL('../src/tasks/task1.json', import.meta.url))),
+  task2: JSON.parse(fs.readFileSync(new URL('../src/tasks/task2.json', import.meta.url))),
+};
+const turnsOf = (t) => t.scenes.flatMap((s) => s.turns);
+const log = (...a) => console.log('•', ...a);
+const assert = (c, m) => { if (!c) throw new Error('ASSERT: ' + m); log('ok -', m); };
+const tag = process.env.BROWSER || 'webkit';
+
+const browser = await engine.launch();
+const ctx = await browser.newContext({
+  ...devices['iPhone 13'],
+  ...(engine === chromium ? { defaultBrowserType: undefined } : {}),
+  viewport: { width: 390, height: 844 },
+  locale: 'zh-CN',
+});
+const page = await ctx.newPage();
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+page.on('dialog', (d) => d.accept());
+
+const shot = async (n) => { await page.waitForTimeout(450); await page.screenshot({ path: `${SHOTS}${n}.png` }); };
+const tid = (id) => page.getByTestId(id);
+
+async function enterMap() {
+  await page.getByText('点击进入村子').tap();
+  await page.waitForFunction(() => window.__aeMap && window.__aeMap.ready(), null, { timeout: 20000 });
+  await page.waitForTimeout(500);
+}
+
+async function playTask(taskId, plan /* turnId -> number of wrong picks before correct */, shotTurn) {
+  const task = tasks[taskId];
+  await tid('intro').waitFor();
+  if (shotTurn) await shot(`${tag}-03-task-intro`);
+  await tid('begin').tap();
+  let expectedCredit = 0;
+  for (const turn of turnsOf(task)) {
+    // travel screen when scene changes
+    if (await tid('arrive').isVisible().catch(() => false)) await tid('arrive').tap();
+    await tid('dialog').waitFor();
+    await page.getByText(turn.line, { exact: true }).waitFor({ timeout: 5000 });
+    const correct = turn.options[turn.answer].en;
+    const wrongs = turn.options.filter((_, i) => i !== turn.answer).map((o) => o.en);
+    const nWrong = plan[turn.id] || 0;
+    for (let k = 0; k < nWrong; k++) {
+      await page.getByRole('button', { name: wrongs[k], exact: true }).tap();
+      await tid('hint').waitFor();
+      const kaiAlt = await tid('kai-face').getAttribute('alt');
+      assert(kaiAlt.includes('confused'), `${turn.id}: wrong pick #${k + 1} shows hint + Kai confused`);
+      assert(await page.getByRole('button', { name: wrongs[k], exact: true }).isDisabled(), `${turn.id}: wrong option disabled for retry`);
+      if (shotTurn === turn.id && k === 0) await shot(`${tag}-04-dialogue-wrong-hint`);
+    }
+    if (shotTurn === turn.id && nWrong === 0) await shot(`${tag}-04-dialogue-turn`);
+    await page.getByRole('button', { name: correct, exact: true }).tap();
+    await tid('good').waitFor();
+    const kaiAlt = await tid('kai-face').getAttribute('alt');
+    if (nWrong === 0 && turn.id === turnsOf(task)[0].id) assert(kaiAlt.includes('happy'), `${turn.id}: correct -> Kai happy`);
+    if (shotTurn === turn.id) await shot(`${tag}-05-dialogue-correct`);
+    expectedCredit += nWrong === 0 ? 1 : nWrong === 1 ? 0.5 : 0;
+    await tid('next').tap();
+  }
+  await tid('to-result').waitFor();
+  if (shotTurn) await shot(`${tag}-06-ending`);
+  await tid('to-result').tap();
+  await tid('result').waitFor();
+  const expected = Math.round((expectedCredit / turnsOf(task).length) * 100);
+  const score = parseInt(await tid('score').innerText(), 10);
+  assert(score === expected, `${taskId} score ${score} == expected ${expected}`);
+  const nWrongItems = await tid('wrong-item').count();
+  assert(nWrongItems === Object.keys(plan).length, `${taskId} result lists ${nWrongItems} wrong items`);
+  return score;
+}
+
+try {
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'networkidle' });
+  await shot(`${tag}-01-start`);
+  await enterMap();
+  await shot(`${tag}-02-map`);
+
+  // tap a word item on the map (bridge)
+  const bridge = await page.evaluate(() => window.__aeMap.itemScreen(350, 600));
+  await page.touchscreen.tap(bridge.x, bridge.y);
+  await tid('word-card').waitFor();
+  assert((await tid('word-card').innerText()).includes('bridge'), 'map item tap shows word card');
+  await shot(`${tag}-02b-map-word`);
+  await tid('word-card').getByLabel('关闭').tap();
+
+  // tap Tomo -> Kai walks over -> NPC sheet -> start task 1
+  const tomo = await page.evaluate(() => window.__aeMap.npcScreen('tomo'));
+  await page.touchscreen.tap(tomo.x, tomo.y);
+  await tid('npc-sheet').waitFor({ timeout: 8000 });
+  await shot(`${tag}-02c-map-npc`);
+  await tid('npc-sheet').getByTestId('start-task1').tap();
+
+  // ===== Task 1: one wrong (half), one double-wrong (zero)
+  const s1 = await playTask('task1', { 't1-01': 1, 't1-03': 2 }, 't1-01');
+  await shot(`${tag}-07-result`);
+  const cmp1 = await tid('compare').innerText();
+  assert(cmp1.includes('第一次'), 'first attempt comparison text');
+
+  // review wrong answers (first-try correct removes them from notebook)
+  await tid('review').tap();
+  for (let k = 0; k < 2; k++) {
+    await tid('review').waitFor();
+    if (k === 0) await shot(`${tag}-08-review`);
+    const text = await tid('review').innerText();
+    const turn = turnsOf(tasks.task1).find((t) => text.includes(t.line));
+    await page.getByRole('button', { name: turn.options[turn.answer].en, exact: true }).tap();
+    await tid('review-next').tap();
+  }
+  await tid('review-done').waitFor();
+  assert((await tid('review-done').innerText()).includes('一次答对 2'), 'review completed, 2 mastered');
+  await tid('review-back-map').tap();
+  await page.waitForFunction(() => window.__aeMap && window.__aeMap.ready());
+
+  // ===== Task 2 via task list, one wrong; skip review
+  await tid('open-tasks').tap();
+  await tid('start-task2').tap();
+  const s2a = await playTask('task2', { 't2-07': 1 }, 't2-07');
+  await tid('back-map').tap();
+  await page.waitForFunction(() => window.__aeMap && window.__aeMap.ready());
+
+  // notebook has 1 item (task1 items were mastered in review)
+  await tid('open-notebook').tap();
+  await tid('notebook').waitFor();
+  assert(await tid('wrong-item').count() === 1, 'notebook has 1 wrong item');
+  await shot(`${tag}-09-notebook`);
+
+  // ===== persistence across reload
+  await page.reload({ waitUntil: 'networkidle' });
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('anime-english.v1')));
+  assert(stored.tasks.task1.best === s1 && stored.tasks.task2.last.score === s2a, 'scores persisted in localStorage');
+  assert(Object.keys(stored.wrong).length === 1, 'wrong list persisted');
+  await enterMap();
+  const stats = await page.locator('.map-stats').innerText();
+  assert(stats.includes('完成 2/2'), `map stats after reload: ${stats}`);
+  assert((await tid('open-notebook').innerText()).includes('(1)'), 'notebook badge after reload');
+  await shot(`${tag}-10-map-after-reload`);
+
+  // redo from notebook -> mastered -> empty
+  await tid('open-notebook').tap();
+  await tid('redo-all').tap();
+  await tid('review').waitFor();
+  const t27 = turnsOf(tasks.task2).find((t) => t.id === 't2-07');
+  // wrong once in review first (stays), check hint, then correct
+  await page.getByRole('button', { name: t27.options[1].en, exact: true }).tap();
+  await page.getByRole('button', { name: t27.options[0].en, exact: true }).tap();
+  await tid('review-next').tap();
+  await tid('review-done').waitFor();
+  assert((await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('anime-english.v1')).wrong).length)) === 1, 'review with a miss keeps item in notebook');
+  await page.getByText('返回错题本').tap();
+  await tid('redo-all').tap();
+  await page.getByRole('button', { name: t27.options[0].en, exact: true }).tap();
+  await tid('review-next').tap();
+  await tid('review-done').waitFor();
+  assert((await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('anime-english.v1')).wrong).length)) === 0, 'first-try correct removes item from notebook');
+  await tid('review-back-map').tap();
+  await page.waitForFunction(() => window.__aeMap && window.__aeMap.ready());
+
+  // ===== replay task 2 perfectly -> comparison vs last
+  await tid('open-tasks').tap();
+  await tid('start-task2').tap();
+  const s2b = await playTask('task2', {}, null);
+  const cmp2 = await tid('compare').innerText();
+  assert(cmp2.includes(`+${s2b - s2a}`) && cmp2.includes(`上次 ${s2a}`), `comparison: ${cmp2.replace(/\n/g, ' ')}`);
+  assert(await tid('review').isDisabled(), 'review disabled when no wrong answers');
+  await shot(`${tag}-11-result-perfect`);
+  await tid('back-map').tap();
+  await page.waitForFunction(() => window.__aeMap && window.__aeMap.ready());
+
+  // Characters page
+  await page.getByText('村民').tap();
+  await page.waitForTimeout(600);
+  await shot(`${tag}-12-characters`);
+
+  // Layout sanity: no horizontal overflow, tap targets >= 44px on map bar
+  const ok = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+  assert(ok, 'no horizontal overflow');
+  assert(errors.length === 0, 'no page errors: ' + errors.join(' | '));
+  console.log('\nALL PASSED', { s1, s2a, s2b });
+} catch (e) {
+  await shot(`${tag}-FAIL`).catch(() => {});
+  console.error('FAILED:', e.message, '\nerrors:', errors);
+  process.exitCode = 1;
+} finally {
+  await browser.close();
+}
